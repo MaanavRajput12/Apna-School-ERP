@@ -1,0 +1,63 @@
+<section class="page-shell">
+  <div class="hero-card">
+    <span class="eyebrow">My Schedule</span>
+    <h1 class="page-title">Your department-aligned faculty timetable.</h1>
+    <p class="page-subtitle">
+      This view shows only the teaching slots assigned to the selected faculty profile.
+    </p>
+  </div>
+
+  <div class="section-stack">
+    <section class="surface-card">
+      <div class="form-grid">
+        <select [(ngModel)]="selectedFacultyId" (ngModelChange)="changeFaculty($event)">
+          <option [ngValue]="null">Select faculty</option>
+          <option *ngFor="let faculty of facultyList" [ngValue]="faculty.facultyId">
+            {{ faculty.facultyName }} - {{ faculty.department }}
+          </option>
+        </select>
+      </div>
+
+      <div class="metric-strip" *ngIf="selectedFaculty">
+        <div class="metric-chip">
+          <span>Faculty</span>
+          <strong>{{ selectedFaculty.facultyName }}</strong>
+        </div>
+        <div class="metric-chip">
+          <span>Department</span>
+          <strong>{{ selectedFaculty.department }}</strong>
+        </div>
+        <div class="metric-chip">
+          <span>Designation</span>
+          <strong>{{ selectedFaculty.designation }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface-card">
+      <h2 class="section-heading">Assigned Teaching Slots</h2>
+      <div class="table-wrap">
+        <table class="erp-table">
+          <thead>
+            <tr>
+              <th>Schedule ID</th>
+              <th>Subject</th>
+              <th>Course</th>
+              <th>Date & Time</th>
+              <th>Classroom</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of scheduleRows">
+              <td>{{ row.facultyScheduleId }}</td>
+              <td>{{ row.subjectName }}</td>
+              <td>{{ row.courseName }}</td>
+              <td>{{ row.scheduleTime }}</td>
+              <td>{{ row.classroom }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</section>

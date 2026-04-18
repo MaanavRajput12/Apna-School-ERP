@@ -1,0 +1,61 @@
+<section class="page-shell">
+  <div class="hero-card">
+    <span class="eyebrow">Exam Timetable</span>
+    <h1 class="page-title">Manage Examination Schedule</h1>
+    <p class="page-subtitle">
+      Create, update, and remove department exam entries for subjects taught across the ERP.
+    </p>
+  </div>
+
+  <div class="section-stack">
+    <section class="surface-card">
+      <h2 class="section-heading">Add Exam Entry</h2>
+      <div class="form-grid">
+        <input [(ngModel)]="newExam.examType" placeholder="Exam type">
+        <input [(ngModel)]="newExam.subjectName" placeholder="Subject name">
+        <input [(ngModel)]="newExam.examDate" type="date">
+        <input [(ngModel)]="newExam.examTime" type="time">
+        <input [(ngModel)]="newExam.totaMarks" type="number" placeholder="Total marks">
+      </div>
+      <div class="cta-row">
+        <button class="btn-primary" (click)="addExam()">Add Exam</button>
+      </div>
+    </section>
+
+    <section class="surface-card">
+      <h2 class="section-heading">Exam Schedule</h2>
+      <p class="section-copy" *ngIf="statusMessage">{{ statusMessage }}</p>
+
+      <div class="table-wrap">
+        <table class="erp-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Type</th>
+              <th>Subject</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Marks</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of exams; let i = index">
+              <td>{{ row.examId }}</td>
+              <td><input [(ngModel)]="row.examType" [disabled]="!row.isEditing"></td>
+              <td><input [(ngModel)]="row.subjectName" [disabled]="!row.isEditing"></td>
+              <td><input [(ngModel)]="row.examDate" [disabled]="!row.isEditing" type="date"></td>
+              <td><input [(ngModel)]="row.examTime" [disabled]="!row.isEditing" type="time"></td>
+              <td><input [(ngModel)]="row.totalMarks" [disabled]="!row.isEditing" type="number"></td>
+              <td>
+                <button class="btn-primary" *ngIf="!row.isEditing" (click)="editRow(i)">Edit</button>
+                <button class="btn-primary" *ngIf="row.isEditing" (click)="saveRow(i)">Save</button>
+                <button class="btn-secondary" (click)="deleteExam(row.examId)">Remove</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</section>

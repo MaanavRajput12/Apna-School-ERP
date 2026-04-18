@@ -1,0 +1,81 @@
+<section class="page-shell">
+  <div class="hero-card">
+    <span class="eyebrow">Attendance</span>
+    <h1 class="page-title">Mark lecture attendance for your own department.</h1>
+    <p class="page-subtitle">
+      Select your faculty profile, choose the correct teaching slot, then mark each student present or absent for that class instance.
+    </p>
+  </div>
+
+  <div class="section-stack">
+    <section class="surface-card">
+      <h2 class="section-heading">Session Setup</h2>
+      <div class="form-grid">
+        <select [(ngModel)]="selectedFacultyId" (ngModelChange)="onFacultyChange($event)">
+          <option [ngValue]="null">Select faculty</option>
+          <option *ngFor="let faculty of facultyList" [ngValue]="faculty.facultyId">
+            {{ faculty.facultyName }} - {{ faculty.department }}
+          </option>
+        </select>
+        <input [(ngModel)]="selectedSemester" (ngModelChange)="refreshView()" placeholder="Semester / year">
+        <input [(ngModel)]="selectedDate" type="date">
+        <select [(ngModel)]="selectedSlotId">
+          <option [ngValue]="null">Select subject and time slot</option>
+          <option *ngFor="let slot of teachingSlots" [ngValue]="slot.facultyScheduleId">
+            {{ slot.subjectName }} | {{ slot.courseName }} | {{ slot.scheduleTime }}
+          </option>
+        </select>
+      </div>
+
+      <div class="metric-strip" *ngIf="selectedFaculty">
+        <div class="metric-chip">
+          <span>Department</span>
+          <strong>{{ selectedFaculty.department }}</strong>
+        </div>
+        <div class="metric-chip" *ngIf="selectedTeachingSlot">
+          <span>Subject</span>
+          <strong>{{ selectedTeachingSlot.subjectName }}</strong>
+        </div>
+        <div class="metric-chip" *ngIf="selectedTeachingSlot">
+          <span>Classroom</span>
+          <strong>{{ selectedTeachingSlot.classroom }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface-card">
+      <h2 class="section-heading">Student Attendance Sheet</h2>
+      <p class="section-copy" *ngIf="statusMessage">{{ statusMessage }}</p>
+
+      <div class="table-wrap">
+        <table class="erp-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Roll No</th>
+              <th>Department</th>
+              <th>Course</th>
+              <th>Semester</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let student of filteredStudents">
+              <td>{{ student.name }}</td>
+              <td>{{ student.rollNo }}</td>
+              <td>{{ student.departmentName }}</td>
+              <td>{{ student.courseName }}</td>
+              <td>{{ student.semester }}</td>
+              <td>{{ getAttendanceLabel(student.studentId) }}</td>
+              <td>
+                <button class="btn-primary" (click)="markAttendance(student, true)">Present</button>
+                <button class="btn-secondary" (click)="markAttendance(student, false)">Absent</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</section>

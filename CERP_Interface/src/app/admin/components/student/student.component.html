@@ -1,0 +1,112 @@
+<section class="page-shell">
+  <div class="hero-card">
+    <span class="eyebrow">Students' List</span>
+    <h1 class="page-title">Manage Student Records</h1>
+    <p class="page-subtitle">
+      Add, update, and remove student records across every department from one admin workspace.
+    </p>
+  </div>
+
+  <div class="section-stack">
+    <section class="surface-card">
+      <h2 class="section-heading">Add Student</h2>
+      <p class="section-copy">Use the live backend-integrated form below to register a new student record.</p>
+
+      <div class="form-grid">
+        <input [(ngModel)]="newStudent.name" placeholder="Full name">
+        <input [(ngModel)]="newStudent.email" placeholder="Email">
+        <input [(ngModel)]="newStudent.dob" type="date" placeholder="Date of birth">
+        <input [(ngModel)]="newStudent.gender" placeholder="Gender">
+        <input [(ngModel)]="newStudent.rollNo" placeholder="Roll number">
+        <input [(ngModel)]="newStudent.phoneNo" type="number" placeholder="Phone number">
+        <input [(ngModel)]="newStudent.address" placeholder="Address">
+        <input [(ngModel)]="newStudent.semester" placeholder="Semester / year">
+        <select [(ngModel)]="newStudent.departmentId">
+          <option [ngValue]="null">Select department</option>
+          <option *ngFor="let department of departments" [ngValue]="department.departmentId">
+            {{ department.departmentName }}
+          </option>
+        </select>
+        <select [(ngModel)]="newStudent.courseId">
+          <option [ngValue]="null">Select course</option>
+          <option *ngFor="let course of courses" [ngValue]="course.courseId">
+            {{ course.courseName }}
+          </option>
+        </select>
+      </div>
+
+      <div class="cta-row">
+        <button class="btn-primary" (click)="addStudent()">Add Student</button>
+      </div>
+    </section>
+
+    <section class="surface-card">
+      <h2 class="section-heading">Student List</h2>
+      <p class="section-copy" *ngIf="statusMessage">{{ statusMessage }}</p>
+      <p class="section-copy" *ngIf="isLoading">Loading student data...</p>
+
+      <div class="table-wrap">
+        <table class="erp-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Department</th>
+              <th>Course</th>
+              <th>Semester</th>
+              <th>Roll No</th>
+              <th>Phone</th>
+              <th>Fees</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of studentList; let i = index">
+              <td>{{ row.studentId }}</td>
+              <td>
+                <input [(ngModel)]="row.name" [disabled]="!row.isEditing">
+              </td>
+              <td>
+                <input [(ngModel)]="row.email" [disabled]="!row.isEditing">
+              </td>
+              <td>
+                <input [(ngModel)]="row.departmentName" [disabled]="!row.isEditing">
+              </td>
+              <td>
+                <input [(ngModel)]="row.courseName" [disabled]="!row.isEditing">
+              </td>
+              <td>
+                <input [(ngModel)]="row.semester" [disabled]="!row.isEditing">
+              </td>
+              <td>
+                <input [(ngModel)]="row.rollNo" [disabled]="!row.isEditing">
+              </td>
+              <td>
+                <input [(ngModel)]="row.phoneNo" [disabled]="!row.isEditing">
+              </td>
+              <td>
+                <input [(ngModel)]="row.feesStatus" [disabled]="!row.isEditing">
+              </td>
+
+              <td>
+                <button class="btn-primary" *ngIf="!row.isEditing" (click)="editRow(i)">
+                  Edit
+                </button>
+
+                <button class="btn-primary" *ngIf="row.isEditing" (click)="saveRow(i)">
+                  Save
+                </button>
+
+                <button class="btn-secondary" (click)="deleteStudent(row)">
+                  Remove
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+  </div>
+</section>

@@ -1,0 +1,51 @@
+<section class="page-shell">
+  <div class="hero-card">
+    <span class="eyebrow">Examinations</span>
+    <h1 class="page-title">Exam schedule for your department.</h1>
+    <p class="page-subtitle">
+      See the exam calendar relevant to the department attached to your selected student profile.
+    </p>
+  </div>
+
+  <div class="section-stack">
+    <section class="surface-card">
+      <div class="form-grid">
+        <select [(ngModel)]="selectedStudentId" (ngModelChange)="onStudentChange($event)">
+          <option [ngValue]="null">Select student</option>
+          <option *ngFor="let student of students" [ngValue]="student.studentId">
+            {{ student.name }} | {{ student.rollNo }} | {{ student.departmentName }}
+          </option>
+        </select>
+      </div>
+    </section>
+
+    <section class="surface-card">
+      <h2 class="section-heading">Exam Calendar</h2>
+      <p class="section-copy" *ngIf="statusMessage">{{ statusMessage }}</p>
+      <div class="table-wrap">
+        <table class="erp-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Subject</th>
+              <th>Department</th>
+              <th>Time</th>
+              <th>Type</th>
+              <th>Marks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of examRows">
+              <td>{{ row.examDate }}</td>
+              <td>{{ row.subjectName }}</td>
+              <td>{{ row.department }}</td>
+              <td>{{ row.examTime }}</td>
+              <td>{{ row.examType }}</td>
+              <td>{{ row.totalMarks }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</section>

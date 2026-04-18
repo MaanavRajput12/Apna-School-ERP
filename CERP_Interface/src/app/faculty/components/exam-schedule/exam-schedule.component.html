@@ -1,0 +1,52 @@
+<section class="page-shell">
+  <div class="hero-card">
+    <span class="eyebrow">Exam Schedule</span>
+    <h1 class="page-title">Exam timetable for your department.</h1>
+    <p class="page-subtitle">
+      View only the examination entries associated with the department connected to your selected faculty account.
+    </p>
+  </div>
+
+  <div class="section-stack">
+    <section class="surface-card">
+      <div class="form-grid">
+        <select [(ngModel)]="selectedFacultyId" (ngModelChange)="changeFaculty($event)">
+          <option [ngValue]="null">Select faculty</option>
+          <option *ngFor="let faculty of facultyList" [ngValue]="faculty.facultyId">
+            {{ faculty.facultyName }} - {{ faculty.department }}
+          </option>
+        </select>
+      </div>
+    </section>
+
+    <section class="surface-card">
+      <h2 class="section-heading">Department Exam List</h2>
+      <div class="table-wrap">
+        <table class="erp-table">
+          <thead>
+            <tr>
+              <th>Exam ID</th>
+              <th>Subject</th>
+              <th>Department</th>
+              <th>Type</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Marks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of examRows">
+              <td>{{ row.examId }}</td>
+              <td>{{ row.subjectName }}</td>
+              <td>{{ row.department }}</td>
+              <td>{{ row.examType }}</td>
+              <td>{{ row.examDate }}</td>
+              <td>{{ row.examTime }}</td>
+              <td>{{ row.totalMarks }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</section>

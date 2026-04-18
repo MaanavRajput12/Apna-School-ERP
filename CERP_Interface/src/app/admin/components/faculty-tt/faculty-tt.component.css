@@ -1,0 +1,21 @@
+.table-wrap {
+  overflow-x: auto;   /* fallback scroll if needed */
+}
+
+.erp-table {
+  width: 100%;
+  table-layout: fixed;   /* IMPORTANT */
+}
+
+.erp-table th,
+.erp-table td {
+  padding: 8px;
+  text-align: center;
+  word-wrap: break-word;
+}
+
+.erp-table input {
+  width: 100%;
+  max-width: 120px;   /* 🔥 controls column width */
+  box-sizing: border-box;
+}

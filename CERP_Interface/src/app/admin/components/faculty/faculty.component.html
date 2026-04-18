@@ -1,0 +1,68 @@
+<section class="page-shell">
+  <div class="hero-card">
+    <span class="eyebrow">Faculty List</span>
+    <h1 class="page-title">Manage Faculty Records</h1>
+    <p class="page-subtitle">
+      Maintain faculty profiles across departments, keep designations current, and remove inactive records.
+    </p>
+  </div>
+
+  <div class="section-stack">
+    <section class="surface-card">
+      <h2 class="section-heading">Add Faculty</h2>
+      <p class="section-copy">Create a new faculty profile directly against the backend.</p>
+
+      <div class="form-grid">
+        <input [(ngModel)]="newFaculty.facultyName" placeholder="Faculty name">
+        <input [(ngModel)]="newFaculty.email" placeholder="Email">
+        <input [(ngModel)]="newFaculty.designation" placeholder="Designation">
+        <input [(ngModel)]="newFaculty.department" placeholder="Department">
+        <input [(ngModel)]="newFaculty.phone" type="number" placeholder="Phone number">
+        <input [(ngModel)]="newFaculty.address" placeholder="Address">
+      </div>
+
+      <div class="cta-row">
+        <button class="btn-primary" (click)="addFaculty()">Add Faculty</button>
+      </div>
+    </section>
+
+    <section class="surface-card">
+      <h2 class="section-heading">Faculty Directory</h2>
+      <p class="section-copy" *ngIf="statusMessage">{{ statusMessage }}</p>
+      <p class="section-copy" *ngIf="isLoading">Loading faculty data...</p>
+
+      <div class="table-wrap">
+        <table class="erp-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Designation</th>
+              <th>Department</th>
+              <th>Phone</th>
+              <th>Address</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of facultyList; let i = index">
+              <td>{{ row.facultyId }}</td>
+              <td><input [(ngModel)]="row.facultyName" [disabled]="!row.isEditing"></td>
+              <td><input [(ngModel)]="row.email" [disabled]="!row.isEditing"></td>
+              <td><input [(ngModel)]="row.designation" [disabled]="!row.isEditing"></td>
+              <td><input [(ngModel)]="row.department" [disabled]="!row.isEditing"></td>
+              <td><input [(ngModel)]="row.phone" [disabled]="!row.isEditing"></td>
+              <td><input [(ngModel)]="row.address" [disabled]="!row.isEditing"></td>
+              <td>
+                <button class="btn-primary" *ngIf="!row.isEditing" (click)="editRow(i)">Edit</button>
+                <button class="btn-primary" *ngIf="row.isEditing" (click)="saveRow(i)">Save</button>
+                <button class="btn-secondary" (click)="deleteFaculty(row)">Remove</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</section>

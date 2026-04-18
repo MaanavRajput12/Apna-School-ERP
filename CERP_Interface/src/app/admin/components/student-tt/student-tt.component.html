@@ -1,0 +1,47 @@
+<section class="page-shell">
+  <div class="hero-card">
+    <span class="eyebrow">Student Timetable</span>
+    <h1 class="page-title">Manage Daily Student Schedules</h1>
+    <p class="page-subtitle">
+      Edit department-wise teaching slots, assigned faculty, and semester timetable entries for students.
+    </p>
+  </div>
+
+  <div class="section-stack">
+    <section class="surface-card">
+      <h2 class="section-heading">Student Schedule Matrix</h2>
+      <p class="section-copy" *ngIf="statusMessage">{{ statusMessage }}</p>
+
+      <div class="table-wrap">
+        <table class="erp-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Semester</th>
+              <th>Day</th>
+              <th>Time Slot</th>
+              <th>Department</th>
+              <th>Faculty</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let row of timetable; let i = index">
+              <td>{{ row.timeTableId }}</td>
+              <td><input [(ngModel)]="row.semester" [disabled]="!row.isEditing"></td>
+              <td><input [(ngModel)]="row.day" [disabled]="!row.isEditing"></td>
+              <td><input [(ngModel)]="row.timeSlot" [disabled]="!row.isEditing"></td>
+              <td><input [(ngModel)]="row.departmentName" [disabled]="!row.isEditing"></td>
+              <td><input [(ngModel)]="row.facultyName" [disabled]="!row.isEditing"></td>
+              <td>
+                <button class="btn-primary" *ngIf="!row.isEditing" (click)="editRow(i)">Edit</button>
+                <button class="btn-primary" *ngIf="row.isEditing" (click)="saveRow(i)">Save</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</section>

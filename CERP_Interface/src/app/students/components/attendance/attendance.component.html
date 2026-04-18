@@ -1,0 +1,68 @@
+<section class="page-shell">
+  <div class="hero-card">
+    <span class="eyebrow">Attendance</span>
+    <h1 class="page-title">Attendance overview for your own profile.</h1>
+    <p class="page-subtitle">
+      Review subject-wise attendance generated only from your own records, not the full department register.
+    </p>
+  </div>
+
+  <div class="section-stack">
+    <section class="surface-card">
+      <h2 class="section-heading">Student Context</h2>
+      <div class="form-grid">
+        <select [(ngModel)]="selectedStudentId" (ngModelChange)="onStudentChange($event)">
+          <option [ngValue]="null">Select student</option>
+          <option *ngFor="let student of students" [ngValue]="student.studentId">
+            {{ student.name }} | {{ student.rollNo }} | {{ student.departmentName }}
+          </option>
+        </select>
+      </div>
+      <div class="metric-strip" *ngIf="selectedStudent">
+        <div class="metric-chip">
+          <span>Department</span>
+          <strong>{{ selectedStudent.departmentName }}</strong>
+        </div>
+        <div class="metric-chip">
+          <span>Semester</span>
+          <strong>{{ selectedStudent.semester }}</strong>
+        </div>
+        <div class="metric-chip">
+          <span>Roll No</span>
+          <strong>{{ selectedStudent.rollNo }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface-card">
+      <h2 class="section-heading">Subject Summary</h2>
+      <p class="section-copy" *ngIf="statusMessage">{{ statusMessage }}</p>
+      <div class="table-wrap">
+        <table class="erp-table">
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th>Attended</th>
+              <th>Total</th>
+              <th>Percentage</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of attendanceRows">
+              <td>{{ row.subjectName }}</td>
+              <td>{{ row.attended }}</td>
+              <td>{{ row.total }}</td>
+              <td>{{ row.percentage }}%</td>
+              <td>
+                <span class="status-pill" [ngClass]="row.percentage >= 75 ? 'status-pill--positive' : 'status-pill--warning'">
+                  {{ row.status }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</section>

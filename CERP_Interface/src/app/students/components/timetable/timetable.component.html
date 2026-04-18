@@ -1,0 +1,63 @@
+<section class="page-shell">
+  <div class="hero-card">
+    <span class="eyebrow">Timetable</span>
+    <h1 class="page-title">Daily class schedule for your own department and semester.</h1>
+    <p class="page-subtitle">
+      View only the timetable entries that match your department and current semester.
+    </p>
+  </div>
+
+  <div class="section-stack">
+    <section class="surface-card">
+      <div class="form-grid">
+        <select [(ngModel)]="selectedStudentId" (ngModelChange)="onStudentChange($event)">
+          <option [ngValue]="null">Select student</option>
+          <option *ngFor="let student of students" [ngValue]="student.studentId">
+            {{ student.name }} | {{ student.rollNo }} | {{ student.departmentName }}
+          </option>
+        </select>
+      </div>
+      <div class="metric-strip" *ngIf="selectedStudent">
+        <div class="metric-chip">
+          <span>Department</span>
+          <strong>{{ selectedStudent.departmentName }}</strong>
+        </div>
+        <div class="metric-chip">
+          <span>Semester</span>
+          <strong>{{ selectedStudent.semester }}</strong>
+        </div>
+        <div class="metric-chip">
+          <span>Course</span>
+          <strong>{{ selectedStudent.courseName }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface-card">
+      <h2 class="section-heading">This Week</h2>
+      <p class="section-copy" *ngIf="statusMessage">{{ statusMessage }}</p>
+      <div class="table-wrap">
+        <table class="erp-table">
+          <thead>
+            <tr>
+              <th>Day</th>
+              <th>Time</th>
+              <th>Department</th>
+              <th>Faculty</th>
+              <th>Semester</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of timetableRows">
+              <td>{{ row.day }}</td>
+              <td>{{ row.timeSlot }}</td>
+              <td>{{ row.departmentName }}</td>
+              <td>{{ row.facultyName }}</td>
+              <td>{{ row.semester }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</section>

@@ -1,0 +1,46 @@
+<section class="page-shell">
+  <div class="hero-card">
+    <span class="eyebrow">Fees</span>
+    <h1 class="page-title">Fee summary for your student account.</h1>
+    <p class="page-subtitle">
+      Review your own fee status and the currently matched payment record from the ERP backend.
+    </p>
+  </div>
+
+  <div class="section-stack">
+    <section class="surface-card">
+      <div class="form-grid">
+        <select [(ngModel)]="selectedStudentId" (ngModelChange)="onStudentChange($event)">
+          <option [ngValue]="null">Select student</option>
+          <option *ngFor="let student of students" [ngValue]="student.studentId">
+            {{ student.name }} | {{ student.rollNo }} | {{ student.departmentName }}
+          </option>
+        </select>
+      </div>
+    </section>
+
+    <section class="surface-card">
+      <h2 class="section-heading">Current Academic Year</h2>
+      <p class="section-copy" *ngIf="statusMessage">{{ statusMessage }}</p>
+      <div class="data-grid" *ngIf="selectedStudent as student">
+        <article class="info-card">
+          <strong>{{ highlightedFee?.amount || 0 | currency:'INR':'symbol':'1.0-0' }}</strong>
+          <h3>Reference Fee Amount</h3>
+          <p>Current fee amount surfaced from the backend fee ledger.</p>
+        </article>
+
+        <article class="info-card">
+          <strong>{{ student.feesStatus || 'Status unavailable' }}</strong>
+          <h3>Your Fee Status</h3>
+          <p>Fee status stored directly on your student profile.</p>
+        </article>
+
+        <article class="info-card">
+          <strong>{{ pendingAmount | currency:'INR':'symbol':'1.0-0' }}</strong>
+          <h3>Pending Amount</h3>
+          <p>Derived from the matched fee record and your current payment status.</p>
+        </article>
+      </div>
+    </section>
+  </div>
+</section>

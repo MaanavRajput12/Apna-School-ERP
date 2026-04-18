@@ -1,0 +1,26 @@
+.erp-footer {
+  padding: 0 0 24px;
+}
+
+.erp-footer__inner {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  background: #0e2237;
+  color: rgba(247, 251, 255, 0.82);
+  border-radius: 22px;
+}
+
+.erp-footer__inner p {
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .erp-footer__inner {
+    width: min(100% - 20px, 1120px);
+    flex-direction: column;
+  }
+}

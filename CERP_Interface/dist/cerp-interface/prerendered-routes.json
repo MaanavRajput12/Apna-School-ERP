@@ -1,0 +1,23 @@
+{
+  "routes": {
+    "/": {},
+    "/admin": {},
+    "/admin/examtimetable": {},
+    "/admin/faculty": {},
+    "/admin/facultytimetable": {},
+    "/admin/studentfees": {},
+    "/admin/students": {},
+    "/admin/studenttimetable": {},
+    "/auth": {},
+    "/faculty": {},
+    "/faculty/attendance": {},
+    "/faculty/exam-schedule": {},
+    "/faculty/faculty-schedule": {},
+    "/faculty/student-schedule": {},
+    "/students": {},
+    "/students/attendance": {},
+    "/students/exam": {},
+    "/students/fees": {},
+    "/students/timetable": {}
+  }
+}
