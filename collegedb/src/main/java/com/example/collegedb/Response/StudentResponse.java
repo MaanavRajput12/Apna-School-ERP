@@ -11,6 +11,7 @@ public class StudentResponse {
     private final String rollNo;
     private final Long phoneNo;
     private final String address;
+    private boolean active;
     @SuppressWarnings("FieldMayBeFinal")
     private String semester;
     private final String departmentName;
@@ -19,7 +20,7 @@ public class StudentResponse {
     private final String courseName;
     private final String userId;
 
-    public StudentResponse(Long studentId, String name, String email, LocalDate dob, String gender, String rollNo, Long phoneNo, String address, String semester, String departmentName, String feesStatus, String courseName, String userId) {
+    public StudentResponse(Long studentId, String name, String email, LocalDate dob, String gender, String rollNo, Long phoneNo, String address, String semester, String departmentName, String feesStatus, String courseName, String userId, boolean active) {
         this.studentId = studentId;
         this.name = name;
         this.email = email;
@@ -33,6 +34,7 @@ public class StudentResponse {
         this.feesStatus = feesStatus;
         this.courseName = courseName;
         this.userId = userId;
+        this.active = active;
     }
 
     // Getters
@@ -49,4 +51,6 @@ public class StudentResponse {
     public String getFeesStatus() { return feesStatus; }
     public String getCourseName() { return courseName; }
     public String getUserId() {return userId;}
+    public boolean getActive() { return active; }
+
 }

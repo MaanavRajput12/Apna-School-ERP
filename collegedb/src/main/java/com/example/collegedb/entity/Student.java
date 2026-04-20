@@ -28,7 +28,7 @@ public class Student {
     private Long phoneNo;
     private String address;
     private String semester;
-
+    private Boolean active = true;
 
     @OneToOne
     @JoinColumn(name = "fees_id")
@@ -56,6 +56,9 @@ public class Student {
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
+    public Boolean getActive() { return active; }
+    public void setActive(Boolean active) { this.active = active; }
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }

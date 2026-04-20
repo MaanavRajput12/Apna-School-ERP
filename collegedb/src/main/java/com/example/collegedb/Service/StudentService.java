@@ -113,8 +113,10 @@ public class StudentService {
     }
 
     public void deleteStudent(Long id) {
-        studentRepository.delete(getExistingStudent(id));
-    }
+    Student student = getExistingStudent(id);
+    student.setActive(false);
+    studentRepository.save(student);
+}
 
     private void apply(Student student, StudentCreateRequest request) {
         student.setName(request.getName().trim());
@@ -201,7 +203,8 @@ public class StudentService {
             student.getDepartment() != null ? student.getDepartment().getDepartmentName() : null,
             student.getFees() != null ? student.getFees().getFeesStatus() : null,
             student.getCourse() != null ? student.getCourse().getCourseName() : null,
-            student.getUser() != null ? student.getUser().getUserId().toString() : null
+            student.getUser() != null ? student.getUser().getUserId().toString() : null,
+            student.getActive()  
         );
     }
 }
