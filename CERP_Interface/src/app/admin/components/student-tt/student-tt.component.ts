@@ -14,6 +14,16 @@ export class StudentTTComponent implements OnInit {
   departments: Department[] = [];
   facultyList: Faculty[] = [];
   statusMessage = '';
+  newTimetable: Timetable & { departmentId: number | null; facultyId: number | null } = {
+    timeTableId: 0,
+    semester: 1,
+    day: '',
+    timeSlot: '',
+    departmentName: null,
+    facultyName: null,
+    departmentId: null,
+    facultyId: null
+  };
 
   constructor(private readonly api: ErpApiService) {}
 
@@ -69,5 +79,59 @@ export class StudentTTComponent implements OnInit {
         this.statusMessage = 'Could not update the selected student schedule.';
       }
     });
+  }
+
+  addTimetable(): void {
+    if (!this.newTimetable.departmentId || !this.newTimetable.facultyId) {
+      this.statusMessage = 'Select a department and faculty before creating the timetable row.';
+      return;
+    }
+
+    const payload: TimetablePayload = {
+      semester: Number(this.newTimetable.semester),
+      day: this.newTimetable.day,
+      timeSlot: this.newTimetable.timeSlot,
+      department: { departmentId: this.newTimetable.departmentId },
+      faculty: { facultyId: this.newTimetable.facultyId }
+    };
+
+    this.api.createTimetable(payload).subscribe({
+      next: createdRow => {
+        this.timetable = [{ ...createdRow, isEditing: false }, ...this.timetable];
+        this.newTimetable = {
+          timeTableId: 0,
+          semester: 1,
+          day: '',
+          timeSlot: '',
+          departmentName: null,
+          facultyName: null,
+          departmentId: null,
+          facultyId: null
+        };
+        this.statusMessage = 'Student timetable created successfully.';
+      },
+      error: () => {
+        this.statusMessage = 'Could not create the student timetable row.';
+      }
+    });
+  }
+
+  getFacultyForDepartment(departmentName: string | null): Faculty[] {
+    if (!departmentName) {
+      return this.facultyList;
+    }
+    return this.facultyList.filter(faculty => faculty.department === departmentName);
+  }
+
+  onNewDepartmentChange(departmentId: number | null): void {
+    this.newTimetable.departmentId = departmentId;
+    const departmentName = this.departments.find(department => department.departmentId === departmentId)?.departmentName ?? null;
+    this.newTimetable.departmentName = departmentName;
+    this.newTimetable.facultyId = null;
+  }
+
+  onDepartmentChange(row: Timetable, departmentName: string | null): void {
+    row.departmentName = departmentName;
+    row.facultyName = null;
   }
 }

@@ -9,27 +9,18 @@
 
   <div class="section-stack">
     <section class="surface-card">
-      <div class="form-grid">
-        <select [(ngModel)]="selectedFacultyId" (ngModelChange)="changeFaculty($event)">
-          <option [ngValue]="null">Select faculty</option>
-          <option *ngFor="let faculty of facultyList" [ngValue]="faculty.facultyId">
-            {{ faculty.facultyName }} - {{ faculty.department }}
-          </option>
-        </select>
-      </div>
-
-      <div class="metric-strip" *ngIf="selectedFaculty">
+      <div class="metric-strip" *ngIf="faculty">
         <div class="metric-chip">
           <span>Faculty</span>
-          <strong>{{ selectedFaculty.facultyName }}</strong>
+          <strong>{{ faculty.facultyName }}</strong>
         </div>
         <div class="metric-chip">
           <span>Department</span>
-          <strong>{{ selectedFaculty.department }}</strong>
+          <strong>{{ faculty.department }}</strong>
         </div>
         <div class="metric-chip">
           <span>Designation</span>
-          <strong>{{ selectedFaculty.designation }}</strong>
+          <strong>{{ faculty.designation }}</strong>
         </div>
       </div>
     </section>

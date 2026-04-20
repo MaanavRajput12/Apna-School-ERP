@@ -11,9 +11,8 @@ import { FacultySessionService } from '../../services/faculty-session.service';
   styleUrl: './student-schedule.component.css'
 })
 export class StudentScheduleComponent implements OnInit {
-  facultyList: Faculty[] = [];
+  faculty: Faculty | null = null;
   scheduleRows: Timetable[] = [];
-  selectedFacultyId: number | null = null;
 
   constructor(
     private readonly api: ErpApiService,
@@ -21,33 +20,17 @@ export class StudentScheduleComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.selectedFacultyId = this.facultySession.getFacultyId();
-    forkJoin({
-      facultyList: this.api.getFaculty(),
-      timetables: this.api.getTimetables()
-    }).subscribe(({ facultyList, timetables }) => {
-      this.facultyList = facultyList;
-      if (!this.selectedFacultyId && facultyList.length > 0) {
-        this.selectedFacultyId = facultyList[0].facultyId;
-      }
-      this.refreshRows(timetables);
-    });
-  }
-
-  changeFaculty(facultyId: number | null): void {
-    this.selectedFacultyId = facultyId;
-    if (facultyId) {
-      this.facultySession.setFacultyId(facultyId);
+    const facultyId = this.facultySession.getFacultyId();
+    if (!facultyId) {
+      return;
     }
-    this.ngOnInit();
-  }
 
-  get selectedFaculty(): Faculty | undefined {
-    return this.facultyList.find(faculty => faculty.facultyId === this.selectedFacultyId);
-  }
-
-  private refreshRows(timetables: Timetable[]): void {
-    const department = this.selectedFaculty?.department;
-    this.scheduleRows = timetables.filter(row => !department || row.departmentName === department);
+    forkJoin({
+      faculty: this.api.getFacultyById(facultyId),
+      timetables: this.api.getTimetables()
+    }).subscribe(({ faculty, timetables }) => {
+      this.faculty = faculty;
+      this.scheduleRows = timetables.filter(row => !faculty.department || row.departmentName === faculty.department);
+    });
   }
 }

@@ -10,8 +10,10 @@ export interface Student {
   semester: string;
   departmentName: string | null;
   feesStatus: string | null;
+  feesId: number | null;
   courseName: string | null;
-  userId: string | null;
+  userId: number | null;
+  active?: boolean;
 }
 
 export interface StudentPayload {
@@ -27,6 +29,7 @@ export interface StudentPayload {
   courseId?: number | null;
   departmentId?: number | null;
   userId?: number | null;
+  loginPassword?: string | null;
 }
 
 export interface Faculty {
@@ -37,6 +40,7 @@ export interface Faculty {
   department: string;
   phone: number;
   address: string;
+  userId: number | null;
 }
 
 export interface FacultyPayload {
@@ -46,6 +50,8 @@ export interface FacultyPayload {
   department: string;
   phone: number;
   address: string;
+  userId?: number | null;
+  loginPassword?: string | null;
 }
 
 export interface Department {
@@ -59,6 +65,14 @@ export interface Course {
   courseId: number;
   courseName: string;
   credits: number;
+  departmentId: number | null;
+  departmentName: string | null;
+}
+
+export interface CoursePayload {
+  courseName: string;
+  credits: number;
+  department?: { departmentId: number } | null;
 }
 
 export interface Subject {
@@ -105,15 +119,18 @@ export interface TimetablePayload {
 
 export interface FacultySchedule {
   facultyScheduleId: number;
-  facultyId: number;
-  subjectId: number;
+  facultyId: number | null;
+  departmentId: number | null;
+  departmentName: string | null;
+  subjectId: number | null;
   scheduleTime: string;
   classroom: string;
 }
 
 export interface FacultySchedulePayload {
-  faculty: { facultyId: number };
-  subject: { subjectId: number };
+  faculty?: { facultyId: number } | null;
+  department?: { departmentId: number } | null;
+  subject?: { subjectId: number } | null;
   scheduleTime: string;
   classroom: string;
 }
@@ -141,10 +158,26 @@ export interface Fee {
   amount: number;
   feesStatus: string;
   dueDate: string;
+  studentId: number | null;
+  studentName: string | null;
 }
 
 export interface FeePayload {
   amount: number;
   feesStatus: string;
   dueDate: string;
+  studentId?: number | null;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  userId: number;
+  role: string;
+  studentId: number | null;
+  facultyId: number | null;
+  adminId: number | null;
 }

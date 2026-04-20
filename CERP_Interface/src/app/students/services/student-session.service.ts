@@ -1,21 +1,15 @@
 import { Injectable } from '@angular/core';
+import { AuthSessionService } from '../../core/services/auth-session.service';
 
 @Injectable({ providedIn: 'root' })
 export class StudentSessionService {
-  private readonly storageKey = 'apna-school-student-id';
+  constructor(private readonly authSession: AuthSessionService) {}
 
   getStudentId(): number | null {
-    if (typeof localStorage === 'undefined') {
-      return null;
-    }
-    const storedValue = localStorage.getItem(this.storageKey);
-    return storedValue ? Number(storedValue) : null;
+    return this.authSession.getStudentId();
   }
 
   setStudentId(studentId: number): void {
-    if (typeof localStorage === 'undefined') {
-      return;
-    }
-    localStorage.setItem(this.storageKey, String(studentId));
+    this.authSession.setSession({ studentId });
   }
 }

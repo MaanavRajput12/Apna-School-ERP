@@ -20,9 +20,8 @@ interface AttendanceSummary {
   styleUrl: './attendance.component.css'
 })
 export class AttendanceComponent implements OnInit {
-  students: Student[] = [];
+  student: Student | null = null;
   attendanceRows: AttendanceSummary[] = [];
-  selectedStudentId: number | null = null;
   statusMessage = '';
 
   constructor(
@@ -31,22 +30,20 @@ export class AttendanceComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.selectedStudentId = this.studentSession.getStudentId();
-    this.loadData();
-  }
+    const studentId = this.studentSession.getStudentId();
+    if (!studentId) {
+      this.statusMessage = 'Student session not found.';
+      return;
+    }
 
-  loadData(): void {
     forkJoin({
-      students: this.api.getStudents(),
+      student: this.api.getStudent(studentId),
       attendance: this.api.getAttendance(),
       subjects: this.api.getSubjects()
     }).subscribe({
-      next: ({ students, attendance, subjects }) => {
-        this.students = students;
-        if (!this.selectedStudentId && students.length > 0) {
-          this.selectedStudentId = students[0].studentId;
-        }
-        this.refreshSummary(attendance, subjects);
+      next: ({ student, attendance, subjects }) => {
+        this.student = student;
+        this.refreshSummary(attendance, subjects, student.studentId);
       },
       error: () => {
         this.statusMessage = 'Unable to load attendance data.';
@@ -54,20 +51,8 @@ export class AttendanceComponent implements OnInit {
     });
   }
 
-  onStudentChange(studentId: number | null): void {
-    this.selectedStudentId = studentId;
-    if (studentId) {
-      this.studentSession.setStudentId(studentId);
-    }
-    this.loadData();
-  }
-
-  get selectedStudent(): Student | undefined {
-    return this.students.find(student => student.studentId === this.selectedStudentId);
-  }
-
-  private refreshSummary(attendance: Attendance[], subjects: Subject[]): void {
-    const studentAttendance = attendance.filter(row => row.studentId === this.selectedStudentId);
+  private refreshSummary(attendance: Attendance[], subjects: Subject[], studentId: number): void {
+    const studentAttendance = attendance.filter(row => row.studentId === studentId);
     const summaryMap = new Map<number, AttendanceSummary>();
 
     studentAttendance.forEach(row => {

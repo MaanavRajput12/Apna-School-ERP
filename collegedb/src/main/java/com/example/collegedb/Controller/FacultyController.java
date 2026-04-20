@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.collegedb.Repository.FacultyRepository;
+import com.example.collegedb.Repository.UsersRepository;
 import com.example.collegedb.Response.FacultyResponse;
+import com.example.collegedb.entity.Users;
 import com.example.collegedb.entity.Faculty;
 
 import jakarta.validation.Valid;
@@ -33,6 +36,12 @@ public class FacultyController {
     @Autowired
     private FacultyRepository facultyRepository;
 
+    @Autowired
+    private UsersRepository usersRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @GetMapping
     public List<FacultyResponse> getAll() {
         logger.info("Fetching all faculty records...");
@@ -44,7 +53,8 @@ public class FacultyController {
                 f.getDesignation(),
                 f.getDepartment(),
                 f.getPhone(),
-                f.getAddress()    
+                f.getAddress(),
+                f.getUser() != null ? f.getUser().getUserId() : null
             ))
             .collect(Collectors.toList());
     }
@@ -61,13 +71,17 @@ public class FacultyController {
             faculty.getDesignation(),
             faculty.getDepartment(),
             faculty.getPhone(),
-            faculty.getAddress()
+            faculty.getAddress(),
+            faculty.getUser() != null ? faculty.getUser().getUserId() : null
         );
     }
 
     @PostMapping
     public FacultyResponse create(@Valid @RequestBody com.example.collegedb.entity.Faculty faculty) {
         logger.info("Creating new faculty record: {}", faculty.getFacultyName());
+        if (faculty.getLoginPassword() != null && !faculty.getLoginPassword().trim().isEmpty()) {
+            faculty.setUser(upsertFacultyUser(faculty.getUser(), faculty.getEmail(), faculty.getLoginPassword()));
+        }
         Faculty saved = facultyRepository.save(faculty);
         logger.debug("Faculty record created with ID: {}", saved.getFacultyId());
         return new FacultyResponse(
@@ -77,7 +91,8 @@ public class FacultyController {
             saved.getDesignation(),
             saved.getDepartment(),
             saved.getPhone(),
-            saved.getAddress()
+            saved.getAddress(),
+            saved.getUser() != null ? saved.getUser().getUserId() : null
         );
     }
 
@@ -93,6 +108,12 @@ public class FacultyController {
         existing.setDepartment(entity.getDepartment());
         existing.setPhone(entity.getPhone());
         existing.setAddress(entity.getAddress());
+        if (entity.getLoginPassword() != null && !entity.getLoginPassword().trim().isEmpty()) {
+            existing.setUser(upsertFacultyUser(existing.getUser(), entity.getEmail(), entity.getLoginPassword()));
+        } else if (existing.getUser() != null) {
+            existing.getUser().setUsername(entity.getEmail().trim());
+            existing.getUser().setRole("FACULTY");
+        }
 
         Faculty updated = facultyRepository.save(existing);
         logger.debug("Faculty record updated with ID: {}", updated.getFacultyId());
@@ -104,7 +125,8 @@ public class FacultyController {
             updated.getDesignation(),
             updated.getDepartment(),
             updated.getPhone(),
-            updated.getAddress()
+            updated.getAddress(),
+            updated.getUser() != null ? updated.getUser().getUserId() : null
         );
     }
 
@@ -141,6 +163,9 @@ public class FacultyController {
         if (entity.getAddress() != null) {
             existing.setAddress(entity.getAddress());
         }
+        if (entity.getLoginPassword() != null && !entity.getLoginPassword().trim().isEmpty()) {
+            existing.setUser(upsertFacultyUser(existing.getUser(), existing.getEmail(), entity.getLoginPassword()));
+        }
 
         Faculty updated = facultyRepository.save(existing);
         logger.debug("Faculty record patched with ID: {}", updated.getFacultyId());
@@ -152,8 +177,24 @@ public class FacultyController {
             updated.getDesignation(),
             updated.getDepartment(),
             updated.getPhone(),
-            updated.getAddress()
+            updated.getAddress(),
+            updated.getUser() != null ? updated.getUser().getUserId() : null
         );
+    }
+
+    private Users upsertFacultyUser(Users existingUser, String email, String rawPassword) {
+        String username = email.trim();
+        usersRepository.findByUsername(username)
+            .filter(foundUser -> existingUser == null || !foundUser.getUserId().equals(existingUser.getUserId()))
+            .ifPresent(foundUser -> {
+                throw new RuntimeException("Username already exists: " + username);
+            });
+
+        Users user = existingUser != null ? existingUser : new Users();
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode(rawPassword.trim()));
+        user.setRole("FACULTY");
+        return usersRepository.save(user);
     }
 
 }

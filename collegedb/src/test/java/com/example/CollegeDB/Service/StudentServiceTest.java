@@ -12,6 +12,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.example.collegedb.Exception.ResourceNotFoundException;
 import com.example.collegedb.Repository.CourseRepository;
@@ -35,6 +36,7 @@ class StudentServiceTest {
     private DepartmentRepository departmentRepository;
     private FeesRepository feesRepository;
     private UsersRepository usersRepository;
+    private PasswordEncoder passwordEncoder;
     private StudentService studentService;
 
     @BeforeEach
@@ -44,12 +46,14 @@ class StudentServiceTest {
         departmentRepository = org.mockito.Mockito.mock(DepartmentRepository.class);
         feesRepository = org.mockito.Mockito.mock(FeesRepository.class);
         usersRepository = org.mockito.Mockito.mock(UsersRepository.class);
+        passwordEncoder = org.mockito.Mockito.mock(PasswordEncoder.class);
         studentService = new StudentService(
             studentRepository,
             courseRepository,
             departmentRepository,
             feesRepository,
-            usersRepository
+            usersRepository,
+            passwordEncoder
         );
     }
 
@@ -101,7 +105,7 @@ class StudentServiceTest {
         assertEquals("Computer Science", response.getDepartmentName());
         assertEquals("BSc CS", response.getCourseName());
         assertEquals("PAID", response.getFeesStatus());
-        assertEquals("4", response.getUserId());
+        assertEquals(4L, response.getUserId());
     }
 
     @Test

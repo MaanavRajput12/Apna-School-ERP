@@ -20,7 +20,7 @@ interface TeachingSlot {
   styleUrl: './attendance.component.css'
 })
 export class AttendanceComponent implements OnInit {
-  facultyList: Faculty[] = [];
+  faculty: Faculty | null = null;
   students: Student[] = [];
   subjects: Subject[] = [];
   attendance: Attendance[] = [];
@@ -29,7 +29,6 @@ export class AttendanceComponent implements OnInit {
   teachingSlots: TeachingSlot[] = [];
   statusMessage = '';
 
-  selectedFacultyId: number | null = null;
   selectedSemester = '';
   selectedDate = new Date().toISOString().slice(0, 10);
   selectedSlotId: number | null = null;
@@ -40,29 +39,26 @@ export class AttendanceComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.selectedFacultyId = this.facultySession.getFacultyId();
-    this.loadData();
-  }
+    const facultyId = this.facultySession.getFacultyId();
+    if (!facultyId) {
+      this.statusMessage = 'Faculty session not found.';
+      return;
+    }
 
-  loadData(): void {
     forkJoin({
-      facultyList: this.api.getFaculty(),
+      faculty: this.api.getFacultyById(facultyId),
       students: this.api.getStudents(),
       subjects: this.api.getSubjects(),
       attendance: this.api.getAttendance(),
       schedules: this.api.getFacultySchedules()
     }).subscribe({
-      next: ({ facultyList, students, subjects, attendance, schedules }) => {
-        this.facultyList = facultyList;
+      next: ({ faculty, students, subjects, attendance, schedules }) => {
+        this.faculty = faculty;
         this.students = students;
         this.subjects = subjects;
         this.attendance = attendance;
         this.schedules = schedules;
-        if (!this.selectedFacultyId && facultyList.length > 0) {
-          this.onFacultyChange(facultyList[0].facultyId);
-        } else {
-          this.refreshView();
-        }
+        this.refreshView();
       },
       error: () => {
         this.statusMessage = 'Unable to load attendance workspace data.';
@@ -70,24 +66,17 @@ export class AttendanceComponent implements OnInit {
     });
   }
 
-  onFacultyChange(facultyId: number | null): void {
-    this.selectedFacultyId = facultyId;
-    if (facultyId) {
-      this.facultySession.setFacultyId(facultyId);
-    }
-    this.refreshView();
-  }
-
   refreshView(): void {
-    const faculty = this.selectedFaculty;
-    const relatedSubjects = this.subjects.filter(subject => subject.facultyName === faculty?.facultyName);
+    const department = this.faculty?.department;
+    const relatedSubjects = this.subjects.filter(subject => subject.facultyName === this.faculty?.facultyName || !subject.facultyName);
+
     this.teachingSlots = this.schedules
-      .filter(schedule => schedule.facultyId === this.selectedFacultyId)
+      .filter(schedule => schedule.departmentName === department)
       .map(schedule => {
         const subject = relatedSubjects.find(item => item.subjectId === schedule.subjectId);
         return {
           facultyScheduleId: schedule.facultyScheduleId,
-          subjectId: schedule.subjectId,
+          subjectId: schedule.subjectId ?? 0,
           subjectName: subject?.name ?? `Subject #${schedule.subjectId}`,
           courseName: subject?.courseName ?? 'Unassigned',
           scheduleTime: schedule.scheduleTime,
@@ -100,7 +89,7 @@ export class AttendanceComponent implements OnInit {
     }
 
     this.filteredStudents = this.students.filter(student => {
-      const departmentMatches = faculty ? student.departmentName === faculty.department : true;
+      const departmentMatches = department ? student.departmentName === department : true;
       const semesterMatches = this.selectedSemester ? student.semester === this.selectedSemester : true;
       return departmentMatches && semesterMatches;
     });
@@ -108,14 +97,14 @@ export class AttendanceComponent implements OnInit {
 
   markAttendance(student: Student, present: boolean): void {
     const selectedSlot = this.selectedTeachingSlot;
-    if (!this.selectedFacultyId || !selectedSlot) {
-      this.statusMessage = 'Select faculty and a teaching slot before marking attendance.';
+    if (!this.faculty?.facultyId || !selectedSlot) {
+      this.statusMessage = 'Select a teaching slot before marking attendance.';
       return;
     }
 
     const existingRecord = this.attendance.find(entry =>
       entry.studentId === student.studentId &&
-      entry.facultyId === this.selectedFacultyId &&
+      entry.facultyId === this.faculty?.facultyId &&
       entry.subjectId === selectedSlot.subjectId &&
       entry.date === this.selectedDate
     );
@@ -125,7 +114,7 @@ export class AttendanceComponent implements OnInit {
       present,
       student: { studentId: student.studentId },
       subject: { subjectId: selectedSlot.subjectId },
-      faculty: { facultyId: this.selectedFacultyId }
+      faculty: { facultyId: this.faculty.facultyId }
     };
 
     const request = existingRecord
@@ -147,13 +136,13 @@ export class AttendanceComponent implements OnInit {
 
   getAttendanceLabel(studentId: number): string {
     const selectedSlot = this.selectedTeachingSlot;
-    if (!selectedSlot || !this.selectedFacultyId) {
+    if (!selectedSlot || !this.faculty?.facultyId) {
       return 'Pending';
     }
 
     const record = this.attendance.find(entry =>
       entry.studentId === studentId &&
-      entry.facultyId === this.selectedFacultyId &&
+      entry.facultyId === this.faculty?.facultyId &&
       entry.subjectId === selectedSlot.subjectId &&
       entry.date === this.selectedDate
     );
@@ -163,10 +152,6 @@ export class AttendanceComponent implements OnInit {
     }
 
     return record.present ? 'Present' : 'Absent';
-  }
-
-  get selectedFaculty(): Faculty | undefined {
-    return this.facultyList.find(faculty => faculty.facultyId === this.selectedFacultyId);
   }
 
   get selectedTeachingSlot(): TeachingSlot | undefined {

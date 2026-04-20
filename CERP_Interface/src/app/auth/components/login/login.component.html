@@ -2,14 +2,14 @@
   <div class="auth-card hero-card">
     <div class="auth-copy">
       <span class="eyebrow">Secure Access</span>
-      <h1 class="page-title">Sign in to the APNA SCHOOL ERP portal.</h1>
+      <h1 class="page-title">{{ pageTitle }}</h1>
       <p class="page-subtitle">
-        Continue to the student workspace for attendance, timetable, exams, and fee tracking.
+        {{ pageSubtitle }}
       </p>
     </div>
 
     <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-      <label class="field-label" for="email">Institution Email</label>
+      <label class="field-label" for="email">{{ roleLabel }} Email</label>
       <input id="email" class="field-input" type="email" placeholder="example@school.edu" formControlName="email">
       <div class="field-error" *ngIf="loginForm.get('email')?.touched">
         <div *ngIf="loginForm.get('email')?.errors?.['required']">Email is required.</div>
@@ -21,6 +21,8 @@
       <div class="field-error" *ngIf="loginForm.get('password')?.touched">
         <div *ngIf="loginForm.get('password')?.errors?.['required']">Password is required.</div>
       </div>
+
+      <div class="field-error" *ngIf="errorMessage">{{ errorMessage }}</div>
 
       <button class="btn-primary auth-submit" type="submit">Sign In</button>
     </form>

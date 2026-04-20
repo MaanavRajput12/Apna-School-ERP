@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { Faculty, FacultyPayload } from '../../../core/models/erp.models';
+import { Department, Faculty, FacultyPayload } from '../../../core/models/erp.models';
 import { ErpApiService } from '../../../core/services/erp-api.service';
+
+type EditableFaculty = Faculty & { isEditing: boolean; loginPassword?: string | null };
 
 @Component({
   selector: 'app-faculty',
@@ -9,7 +11,8 @@ import { ErpApiService } from '../../../core/services/erp-api.service';
   styleUrl: './faculty.component.css'
 })
 export class FacultyComponent implements OnInit {
-  facultyList: Array<Faculty & { isEditing: boolean }> = [];
+  facultyList: EditableFaculty[] = [];
+  departments: Department[] = [];
   statusMessage = '';
   isLoading = false;
 
@@ -19,7 +22,8 @@ export class FacultyComponent implements OnInit {
     designation: '',
     department: '',
     phone: 0,
-    address: ''
+    address: '',
+    loginPassword: ''
   };
 
   constructor(private readonly api: ErpApiService) {}
@@ -32,12 +36,18 @@ export class FacultyComponent implements OnInit {
     this.isLoading = true;
     this.api.getFaculty().subscribe({
       next: facultyList => {
-        this.facultyList = facultyList.map(faculty => ({ ...faculty, isEditing: false }));
+        this.facultyList = facultyList.map(faculty => ({ ...faculty, isEditing: false, loginPassword: '' }));
         this.isLoading = false;
       },
       error: () => {
         this.statusMessage = 'Unable to load faculty records right now.';
         this.isLoading = false;
+      }
+    });
+
+    this.api.getDepartments().subscribe({
+      next: departments => {
+        this.departments = departments;
       }
     });
   }
@@ -54,12 +64,13 @@ export class FacultyComponent implements OnInit {
       designation: row.designation,
       department: row.department,
       phone: Number(row.phone),
-      address: row.address
+      address: row.address,
+      loginPassword: row.loginPassword?.trim() ? row.loginPassword.trim() : null
     };
 
     this.api.updateFaculty(row.facultyId, payload).subscribe({
       next: updatedFaculty => {
-        this.facultyList[index] = { ...updatedFaculty, isEditing: false };
+        this.facultyList[index] = { ...updatedFaculty, isEditing: false, loginPassword: '' };
         this.statusMessage = `${updatedFaculty.facultyName} was updated successfully.`;
       },
       error: () => {
@@ -71,14 +82,15 @@ export class FacultyComponent implements OnInit {
   addFaculty(): void {
     this.api.createFaculty(this.newFaculty).subscribe({
       next: createdFaculty => {
-        this.facultyList = [{ ...createdFaculty, isEditing: false }, ...this.facultyList];
+        this.facultyList = [{ ...createdFaculty, isEditing: false, loginPassword: '' }, ...this.facultyList];
         this.newFaculty = {
           facultyName: '',
           email: '',
           designation: '',
           department: '',
           phone: 0,
-          address: ''
+          address: '',
+          loginPassword: ''
         };
         this.statusMessage = `${createdFaculty.facultyName} was added successfully.`;
       },
@@ -99,5 +111,4 @@ export class FacultyComponent implements OnInit {
       }
     });
   }
-
 }

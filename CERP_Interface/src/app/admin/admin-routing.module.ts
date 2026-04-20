@@ -7,6 +7,8 @@ import { StudentTTComponent } from './components/student-tt/student-tt.component
 import { FacultyTTComponent } from './components/faculty-tt/faculty-tt.component';
 import { StudentfeesComponent } from './components/studentfees/studentfees.component';
 import { ExamTTComponent } from './components/exam-tt/exam-tt.component';
+import { CourseComponent } from './components/course/course.component';
+import { DepartmentComponent } from './components/department/department.component';
 
 const routes: Routes = [
   {
@@ -32,6 +34,14 @@ const routes: Routes = [
 {
   path: "studentfees",
   component: StudentfeesComponent
+},
+{
+  path: "courses",
+  component: CourseComponent
+},
+{
+  path: "departments",
+  component: DepartmentComponent
 },
 {
   path: "examtimetable",

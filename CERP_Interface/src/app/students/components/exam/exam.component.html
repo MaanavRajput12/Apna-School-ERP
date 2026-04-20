@@ -9,17 +9,6 @@
 
   <div class="section-stack">
     <section class="surface-card">
-      <div class="form-grid">
-        <select [(ngModel)]="selectedStudentId" (ngModelChange)="onStudentChange($event)">
-          <option [ngValue]="null">Select student</option>
-          <option *ngFor="let student of students" [ngValue]="student.studentId">
-            {{ student.name }} | {{ student.rollNo }} | {{ student.departmentName }}
-          </option>
-        </select>
-      </div>
-    </section>
-
-    <section class="surface-card">
       <h2 class="section-heading">Exam Calendar</h2>
       <p class="section-copy" *ngIf="statusMessage">{{ statusMessage }}</p>
       <div class="table-wrap">

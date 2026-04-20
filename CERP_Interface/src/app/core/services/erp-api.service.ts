@@ -6,6 +6,7 @@ import {
   Attendance,
   AttendancePayload,
   Course,
+  CoursePayload,
   Department,
   Exam,
   ExamPayload,
@@ -15,6 +16,8 @@ import {
   FacultySchedulePayload,
   Fee,
   FeePayload,
+  LoginRequest,
+  LoginResponse,
   Student,
   StudentPayload,
   Subject,
@@ -29,11 +32,19 @@ export class ErpApiService {
 
   constructor(private readonly http: HttpClient) {}
 
+  login(payload: LoginRequest): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.baseUrl}/auth/login`, payload);
+  }
+
   getStudents(): Observable<Student[]> {
     if (!isPlatformBrowser(this.platformId)) {
       return of([]);
     }
     return this.http.get<Student[]>(`${this.baseUrl}/students`);
+  }
+
+  getStudent(studentId: number): Observable<Student> {
+    return this.http.get<Student>(`${this.baseUrl}/students/${studentId}`);
   }
 
   createStudent(payload: StudentPayload): Observable<Student> {
@@ -55,6 +66,10 @@ export class ErpApiService {
     return this.http.get<Faculty[]>(`${this.baseUrl}/faculty`);
   }
 
+  getFacultyById(facultyId: number): Observable<Faculty> {
+    return this.http.get<Faculty>(`${this.baseUrl}/faculty/${facultyId}`);
+  }
+
   createFaculty(payload: FacultyPayload): Observable<Faculty> {
     return this.http.post<Faculty>(`${this.baseUrl}/faculty`, payload);
   }
@@ -74,11 +89,35 @@ export class ErpApiService {
     return this.http.get<Department[]>(`${this.baseUrl}/departments`);
   }
 
+  createDepartment(payload: Partial<Department>): Observable<Department> {
+    return this.http.post<Department>(`${this.baseUrl}/departments`, payload);
+  }
+
+  updateDepartment(departmentId: number, payload: Partial<Department>): Observable<Department> {
+    return this.http.put<Department>(`${this.baseUrl}/departments/${departmentId}`, payload);
+  }
+
+  deleteDepartment(departmentId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/departments/${departmentId}`);
+  }
+
   getCourses(): Observable<Course[]> {
     if (!isPlatformBrowser(this.platformId)) {
       return of([]);
     }
     return this.http.get<Course[]>(`${this.baseUrl}/course`);
+  }
+
+  createCourse(payload: CoursePayload): Observable<Course> {
+    return this.http.post<Course>(`${this.baseUrl}/course`, payload);
+  }
+
+  updateCourse(courseId: number, payload: CoursePayload): Observable<Course> {
+    return this.http.put<Course>(`${this.baseUrl}/course/${courseId}`, payload);
+  }
+
+  deleteCourse(courseId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/course/${courseId}`);
   }
 
   getSubjects(): Observable<Subject[]> {
@@ -110,6 +149,10 @@ export class ErpApiService {
     return this.http.get<Timetable[]>(`${this.baseUrl}/timetables`);
   }
 
+  createTimetable(payload: TimetablePayload): Observable<Timetable> {
+    return this.http.post<Timetable>(`${this.baseUrl}/timetables`, payload);
+  }
+
   updateTimetable(timeTableId: number, payload: TimetablePayload): Observable<Timetable> {
     return this.http.put<Timetable>(`${this.baseUrl}/timetables/${timeTableId}`, payload);
   }
@@ -119,6 +162,10 @@ export class ErpApiService {
       return of([]);
     }
     return this.http.get<FacultySchedule[]>(`${this.baseUrl}/facultySchedule`);
+  }
+
+  createFacultySchedule(payload: FacultySchedulePayload): Observable<FacultySchedule> {
+    return this.http.post<FacultySchedule>(`${this.baseUrl}/facultySchedule`, payload);
   }
 
   updateFacultySchedule(facultyScheduleId: number, payload: FacultySchedulePayload): Observable<FacultySchedule> {
@@ -149,6 +196,10 @@ export class ErpApiService {
       return of([]);
     }
     return this.http.get<Fee[]>(`${this.baseUrl}/api/fees`);
+  }
+
+  createFee(payload: FeePayload): Observable<Fee> {
+    return this.http.post<Fee>(`${this.baseUrl}/api/fees`, payload);
   }
 
   updateFee(feesId: number, payload: FeePayload): Observable<Fee> {

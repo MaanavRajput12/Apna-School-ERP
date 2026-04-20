@@ -3,7 +3,7 @@
     <span class="eyebrow">Faculty List</span>
     <h1 class="page-title">Manage Faculty Records</h1>
     <p class="page-subtitle">
-      Maintain faculty profiles across departments, keep designations current, and remove inactive records.
+      Maintain faculty profiles with department-linked login access.
     </p>
   </div>
 
@@ -14,9 +14,15 @@
 
       <div class="form-grid">
         <input [(ngModel)]="newFaculty.facultyName" placeholder="Faculty name">
-        <input [(ngModel)]="newFaculty.email" placeholder="Email">
+        <input [(ngModel)]="newFaculty.email" placeholder="Login email">
+        <input [(ngModel)]="newFaculty.loginPassword" type="password" placeholder="Login password">
         <input [(ngModel)]="newFaculty.designation" placeholder="Designation">
-        <input [(ngModel)]="newFaculty.department" placeholder="Department">
+        <select [(ngModel)]="newFaculty.department">
+          <option value="">Select department</option>
+          <option *ngFor="let department of departments" [ngValue]="department.departmentName">
+            {{ department.departmentName }}
+          </option>
+        </select>
         <input [(ngModel)]="newFaculty.phone" type="number" placeholder="Phone number">
         <input [(ngModel)]="newFaculty.address" placeholder="Address">
       </div>
@@ -38,6 +44,7 @@
               <th>ID</th>
               <th>Name</th>
               <th>Email</th>
+              <th>Password</th>
               <th>Designation</th>
               <th>Department</th>
               <th>Phone</th>
@@ -50,8 +57,15 @@
               <td>{{ row.facultyId }}</td>
               <td><input [(ngModel)]="row.facultyName" [disabled]="!row.isEditing"></td>
               <td><input [(ngModel)]="row.email" [disabled]="!row.isEditing"></td>
+              <td><input [(ngModel)]="row.loginPassword" [disabled]="!row.isEditing" type="password" placeholder="Set new password"></td>
               <td><input [(ngModel)]="row.designation" [disabled]="!row.isEditing"></td>
-              <td><input [(ngModel)]="row.department" [disabled]="!row.isEditing"></td>
+              <td>
+                <select [(ngModel)]="row.department" [disabled]="!row.isEditing">
+                  <option *ngFor="let department of departments" [ngValue]="department.departmentName">
+                    {{ department.departmentName }}
+                  </option>
+                </select>
+              </td>
               <td><input [(ngModel)]="row.phone" [disabled]="!row.isEditing"></td>
               <td><input [(ngModel)]="row.address" [disabled]="!row.isEditing"></td>
               <td>

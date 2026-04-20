@@ -46,6 +46,7 @@ public class StudentUpdateRequest {
     private Long courseId;
     private Long departmentId;
     private Long userId;
+    private String loginPassword;
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -71,4 +72,6 @@ public class StudentUpdateRequest {
     public void setDepartmentId(Long departmentId) { this.departmentId = departmentId; }
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
+    public String getLoginPassword() { return loginPassword; }
+    public void setLoginPassword(String loginPassword) { this.loginPassword = loginPassword; }
 }

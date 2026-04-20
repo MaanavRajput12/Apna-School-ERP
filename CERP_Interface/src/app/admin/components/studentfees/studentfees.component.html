@@ -3,20 +3,37 @@
     <span class="eyebrow">Fees</span>
     <h1 class="page-title">Manage Student Fee Records</h1>
     <p class="page-subtitle">
-      Review due dates, update payment status, and keep fee data current for all students.
+      Select a student first, then update that student's fee record only.
     </p>
   </div>
 
   <div class="section-stack">
     <section class="surface-card">
-      <h2 class="section-heading">Fee Ledger</h2>
+      <h2 class="section-heading">Student Fee Editor</h2>
       <p class="section-copy" *ngIf="statusMessage">{{ statusMessage }}</p>
 
+      <div class="form-grid">
+        <select [(ngModel)]="selectedStudentId" (ngModelChange)="onStudentChange($event)">
+          <option [ngValue]="null">Select student</option>
+          <option *ngFor="let student of students" [ngValue]="student.studentId">
+            {{ student.name }} | {{ student.rollNo }}
+          </option>
+        </select>
+        <input [(ngModel)]="draftFee.amount" type="number" placeholder="Amount">
+        <input [(ngModel)]="draftFee.feesStatus" placeholder="Fee status">
+        <input [(ngModel)]="draftFee.dueDate" type="date">
+        <button class="btn-primary" (click)="createOrUpdateForSelectedStudent()">Save Fee Record</button>
+      </div>
+    </section>
+
+    <section class="surface-card">
+      <h2 class="section-heading">Fee Ledger</h2>
       <div class="table-wrap">
         <table class="erp-table">
           <thead>
             <tr>
               <th>ID</th>
+              <th>Student</th>
               <th>Amount</th>
               <th>Status</th>
               <th>Due Date</th>
@@ -26,6 +43,7 @@
           <tbody>
             <tr *ngFor="let row of fees; let i = index">
               <td>{{ row.feesId }}</td>
+              <td>{{ row.studentName }}</td>
               <td><input [(ngModel)]="row.amount" [disabled]="!row.isEditing" type="number"></td>
               <td><input [(ngModel)]="row.feesStatus" [disabled]="!row.isEditing"></td>
               <td><input [(ngModel)]="row.dueDate" [disabled]="!row.isEditing" type="date"></td>

@@ -3,6 +3,8 @@ import { forkJoin } from 'rxjs';
 import { Course, Department, Student, StudentPayload } from '../../../core/models/erp.models';
 import { ErpApiService } from '../../../core/services/erp-api.service';
 
+type EditableStudent = Student & { isEditing: boolean; loginPassword?: string | null };
+
 @Component({
   selector: 'app-student',
   standalone: false,
@@ -10,7 +12,7 @@ import { ErpApiService } from '../../../core/services/erp-api.service';
   styleUrl: './student.component.css'
 })
 export class StudentComponent implements OnInit {
-  studentList: Array<Student & { isEditing: boolean }> = [];
+  studentList: EditableStudent[] = [];
   departments: Department[] = [];
   courses: Course[] = [];
   statusMessage = '';
@@ -32,7 +34,7 @@ export class StudentComponent implements OnInit {
       courses: this.api.getCourses()
     }).subscribe({
       next: ({ students, departments, courses }) => {
-        this.studentList = students.map(student => ({ ...student, isEditing: false }));
+        this.studentList = students.map(student => ({ ...student, isEditing: false, loginPassword: '' }));
         this.departments = departments;
         this.courses = courses;
         this.isLoading = false;
@@ -51,15 +53,9 @@ export class StudentComponent implements OnInit {
   saveRow(index: number): void {
     const row = this.studentList[index];
     const payload = this.toStudentPayload(row);
-
-    if (!payload) {
-      this.statusMessage = 'Student department and course must match available master data.';
-      return;
-    }
-
     this.api.updateStudent(row.studentId, payload).subscribe({
       next: updatedStudent => {
-        this.studentList[index] = { ...updatedStudent, isEditing: false };
+        this.studentList[index] = { ...updatedStudent, isEditing: false, loginPassword: '' };
         this.statusMessage = `${updatedStudent.name} was updated successfully.`;
       },
       error: () => {
@@ -71,7 +67,7 @@ export class StudentComponent implements OnInit {
   addStudent(): void {
     this.api.createStudent(this.newStudent).subscribe({
       next: createdStudent => {
-        this.studentList = [{ ...createdStudent, isEditing: false }, ...this.studentList];
+        this.studentList = [{ ...createdStudent, isEditing: false, loginPassword: '' }, ...this.studentList];
         this.newStudent = this.createEmptyStudent();
         this.statusMessage = `${createdStudent.name} was added successfully.`;
       },
@@ -93,14 +89,7 @@ export class StudentComponent implements OnInit {
     });
   }
 
-  private toStudentPayload(student: Student): StudentPayload | null {
-    const departmentId = this.departments.find(department => department.departmentName === student.departmentName)?.departmentId;
-    const courseId = this.courses.find(course => course.courseName === student.courseName)?.courseId;
-
-    if (!departmentId || !courseId) {
-      return null;
-    }
-
+  private toStudentPayload(student: EditableStudent): StudentPayload {
     return {
       name: student.name,
       email: student.email,
@@ -110,10 +99,11 @@ export class StudentComponent implements OnInit {
       phoneNo: Number(student.phoneNo),
       address: student.address,
       semester: student.semester,
-      departmentId,
-      courseId,
-      feesId: null,
-      userId: student.userId ? Number(student.userId) : null
+      departmentId: this.departments.find(department => department.departmentName === student.departmentName)?.departmentId ?? null,
+      courseId: this.courses.find(course => course.courseName === student.courseName)?.courseId ?? null,
+      feesId: student.feesId ?? null,
+      userId: student.userId ?? null,
+      loginPassword: student.loginPassword?.trim() ? student.loginPassword.trim() : null
     };
   }
 
@@ -130,7 +120,8 @@ export class StudentComponent implements OnInit {
       departmentId: null,
       courseId: null,
       feesId: null,
-      userId: null
+      userId: null,
+      loginPassword: ''
     };
   }
 }

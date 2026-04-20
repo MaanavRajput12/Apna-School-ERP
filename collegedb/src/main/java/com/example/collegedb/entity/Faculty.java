@@ -7,8 +7,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "faculty")
@@ -23,6 +26,13 @@ public class Faculty {
     private String department;
     private Long phone;
     private String address;
+
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private Users user;
+
+    @Transient
+    private String loginPassword;
 
     @OneToMany(mappedBy = "faculty", cascade = CascadeType.ALL)
     private List<Course> courses;
@@ -60,6 +70,12 @@ public class Faculty {
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
+
+    public Users getUser() { return user; }
+    public void setUser(Users user) { this.user = user; }
+
+    public String getLoginPassword() { return loginPassword; }
+    public void setLoginPassword(String loginPassword) { this.loginPassword = loginPassword; }
 
     public List<Course> getCourses() { return courses; }
     public void setCourses(List<Course> courses) { this.courses = courses; }

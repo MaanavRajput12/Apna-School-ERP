@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "fees")
@@ -24,6 +25,9 @@ public class Fees {
     @OneToOne(mappedBy = "fees")
     private Student student;
 
+    @Transient
+    private Long studentId;
+
     // Getters and Setters
     public Long getFeesId() { return feesId; }
     public void setFeesId(Long feesId) { this.feesId = feesId;}
@@ -39,4 +43,7 @@ public class Fees {
 
     public Student getStudent() { return student; }
     public void setStudent(Student student) { this.student = student; }
+
+    public Long getStudentId() { return studentId; }
+    public void setStudentId(Long studentId) { this.studentId = studentId; }
 }

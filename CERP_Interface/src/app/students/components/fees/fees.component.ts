@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { forkJoin } from 'rxjs';
 import { Fee, Student } from '../../../core/models/erp.models';
 import { ErpApiService } from '../../../core/services/erp-api.service';
 import { StudentSessionService } from '../../services/student-session.service';
-import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-fees',
@@ -11,9 +11,8 @@ import { forkJoin } from 'rxjs';
   styleUrl: './fees.component.css'
 })
 export class FeesComponent implements OnInit {
-  students: Student[] = [];
-  feeRows: Fee[] = [];
-  selectedStudentId: number | null = null;
+  student: Student | null = null;
+  fee: Fee | null = null;
   statusMessage = '';
 
   constructor(
@@ -22,21 +21,19 @@ export class FeesComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.selectedStudentId = this.studentSession.getStudentId();
-    this.loadData();
-  }
+    const studentId = this.studentSession.getStudentId();
+    if (!studentId) {
+      this.statusMessage = 'Student session not found.';
+      return;
+    }
 
-  loadData(): void {
     forkJoin({
-      students: this.api.getStudents(),
+      student: this.api.getStudent(studentId),
       fees: this.api.getFees()
     }).subscribe({
-      next: ({ students, fees }) => {
-        this.students = students;
-        this.feeRows = fees;
-        if (!this.selectedStudentId && students.length > 0) {
-          this.selectedStudentId = students[0].studentId;
-        }
+      next: ({ student, fees }) => {
+        this.student = student;
+        this.fee = fees.find(item => item.studentId === student.studentId) ?? null;
       },
       error: () => {
         this.statusMessage = 'Unable to load fee data.';
@@ -44,30 +41,10 @@ export class FeesComponent implements OnInit {
     });
   }
 
-  onStudentChange(studentId: number | null): void {
-    this.selectedStudentId = studentId;
-    if (studentId) {
-      this.studentSession.setStudentId(studentId);
-    }
-  }
-
-  get selectedStudent(): Student | undefined {
-    return this.students.find(student => student.studentId === this.selectedStudentId);
-  }
-
-  get highlightedFee(): Fee | undefined {
-    if (!this.feeRows.length) {
-      return undefined;
-    }
-    const status = this.selectedStudent?.feesStatus;
-    return this.feeRows.find(fee => fee.feesStatus === status) ?? this.feeRows[0];
-  }
-
   get pendingAmount(): number {
-    const fee = this.highlightedFee;
-    if (!fee) {
+    if (!this.fee) {
       return 0;
     }
-    return fee.feesStatus?.toLowerCase().includes('paid') ? 0 : fee.amount;
+    return this.fee.feesStatus?.toLowerCase().includes('paid') ? 0 : this.fee.amount;
   }
 }

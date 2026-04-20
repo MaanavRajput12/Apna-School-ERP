@@ -11,9 +11,8 @@ import { FacultySessionService } from '../../services/faculty-session.service';
   styleUrl: './faculty-schedule.component.css'
 })
 export class FacultyScheduleComponent implements OnInit {
-  facultyList: Faculty[] = [];
+  faculty: Faculty | null = null;
   scheduleRows: Array<FacultySchedule & { subjectName: string; courseName: string }> = [];
-  selectedFacultyId: number | null = null;
 
   constructor(
     private readonly api: ErpApiService,
@@ -21,42 +20,27 @@ export class FacultyScheduleComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.selectedFacultyId = this.facultySession.getFacultyId();
+    const facultyId = this.facultySession.getFacultyId();
+    if (!facultyId) {
+      return;
+    }
+
     forkJoin({
-      facultyList: this.api.getFaculty(),
+      faculty: this.api.getFacultyById(facultyId),
       schedules: this.api.getFacultySchedules(),
       subjects: this.api.getSubjects()
-    }).subscribe(({ facultyList, schedules, subjects }) => {
-      this.facultyList = facultyList;
-      if (!this.selectedFacultyId && facultyList.length > 0) {
-        this.selectedFacultyId = facultyList[0].facultyId;
-      }
-      this.refreshRows(schedules, subjects);
+    }).subscribe(({ faculty, schedules, subjects }) => {
+      this.faculty = faculty;
+      this.scheduleRows = schedules
+        .filter(schedule => schedule.departmentName === faculty.department)
+        .map(schedule => {
+          const subject = subjects.find(entry => entry.subjectId === schedule.subjectId);
+          return {
+            ...schedule,
+            subjectName: subject?.name ?? `Subject #${schedule.subjectId}`,
+            courseName: subject?.courseName ?? 'Unassigned'
+          };
+        });
     });
-  }
-
-  changeFaculty(facultyId: number | null): void {
-    this.selectedFacultyId = facultyId;
-    if (facultyId) {
-      this.facultySession.setFacultyId(facultyId);
-    }
-    this.ngOnInit();
-  }
-
-  get selectedFaculty(): Faculty | undefined {
-    return this.facultyList.find(faculty => faculty.facultyId === this.selectedFacultyId);
-  }
-
-  private refreshRows(schedules: FacultySchedule[], subjects: Subject[]): void {
-    this.scheduleRows = schedules
-      .filter(schedule => schedule.facultyId === this.selectedFacultyId)
-      .map(schedule => {
-        const subject = subjects.find(entry => entry.subjectId === schedule.subjectId);
-        return {
-          ...schedule,
-          subjectName: subject?.name ?? `Subject #${schedule.subjectId}`,
-          courseName: subject?.courseName ?? 'Unassigned'
-        };
-      });
   }
 }

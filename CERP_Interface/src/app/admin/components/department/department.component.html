@@ -1,0 +1,55 @@
+<section class="page-shell">
+  <div class="hero-card">
+    <span class="eyebrow">Department Management</span>
+    <h1 class="page-title">Manage Departments</h1>
+    <p class="page-subtitle">
+      Create, update, and remove departments from a dedicated admin workspace.
+    </p>
+  </div>
+
+  <div class="section-stack">
+    <section class="surface-card">
+      <h2 class="section-heading">Add Department</h2>
+      <div class="form-grid">
+        <input [(ngModel)]="newDepartment.departmentName" placeholder="Department name">
+        <input [(ngModel)]="newDepartment.numberOfStudents" type="number" placeholder="Students">
+        <input [(ngModel)]="newDepartment.numberOfFaculties" type="number" placeholder="Faculties">
+      </div>
+      <div class="cta-row">
+        <button class="btn-primary" (click)="addDepartment()">Add Department</button>
+      </div>
+    </section>
+
+    <section class="surface-card">
+      <h2 class="section-heading">Department List</h2>
+      <p class="section-copy" *ngIf="statusMessage">{{ statusMessage }}</p>
+
+      <div class="table-wrap">
+        <table class="erp-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Department</th>
+              <th>Students</th>
+              <th>Faculties</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of departments; let i = index">
+              <td>{{ row.departmentId }}</td>
+              <td><input [(ngModel)]="row.departmentName" [disabled]="!row.isEditing"></td>
+              <td><input [(ngModel)]="row.numberOfStudents" [disabled]="!row.isEditing" type="number"></td>
+              <td><input [(ngModel)]="row.numberOfFaculties" [disabled]="!row.isEditing" type="number"></td>
+              <td>
+                <button class="btn-primary" *ngIf="!row.isEditing" (click)="editRow(i)">Edit</button>
+                <button class="btn-primary" *ngIf="row.isEditing" (click)="saveRow(i)">Save</button>
+                <button class="btn-secondary" (click)="deleteDepartment(row)">Remove</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</section>

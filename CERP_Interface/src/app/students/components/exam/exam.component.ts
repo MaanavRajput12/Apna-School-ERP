@@ -11,9 +11,8 @@ import { StudentSessionService } from '../../services/student-session.service';
   styleUrl: './exam.component.css'
 })
 export class ExamComponent implements OnInit {
-  students: Student[] = [];
+  student: Student | null = null;
   examRows: Array<Exam & { department: string }> = [];
-  selectedStudentId: number | null = null;
   statusMessage = '';
 
   constructor(
@@ -22,23 +21,21 @@ export class ExamComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.selectedStudentId = this.studentSession.getStudentId();
-    this.loadData();
-  }
+    const studentId = this.studentSession.getStudentId();
+    if (!studentId) {
+      this.statusMessage = 'Student session not found.';
+      return;
+    }
 
-  loadData(): void {
     forkJoin({
-      students: this.api.getStudents(),
+      student: this.api.getStudent(studentId),
       exams: this.api.getExams(),
       subjects: this.api.getSubjects(),
       facultyList: this.api.getFaculty()
     }).subscribe({
-      next: ({ students, exams, subjects, facultyList }) => {
-        this.students = students;
-        if (!this.selectedStudentId && students.length > 0) {
-          this.selectedStudentId = students[0].studentId;
-        }
-        this.refreshRows(exams, subjects, facultyList);
+      next: ({ student, exams, subjects, facultyList }) => {
+        this.student = student;
+        this.refreshRows(exams, subjects, facultyList, student.departmentName);
       },
       error: () => {
         this.statusMessage = 'Unable to load exam schedule.';
@@ -46,20 +43,7 @@ export class ExamComponent implements OnInit {
     });
   }
 
-  onStudentChange(studentId: number | null): void {
-    this.selectedStudentId = studentId;
-    if (studentId) {
-      this.studentSession.setStudentId(studentId);
-    }
-    this.loadData();
-  }
-
-  get selectedStudent(): Student | undefined {
-    return this.students.find(student => student.studentId === this.selectedStudentId);
-  }
-
-  private refreshRows(exams: Exam[], subjects: Subject[], facultyList: Faculty[]): void {
-    const department = this.selectedStudent?.departmentName;
+  private refreshRows(exams: Exam[], subjects: Subject[], facultyList: Faculty[], department: string | null): void {
     this.examRows = exams
       .map(exam => {
         const subject = subjects.find(item => item.name === exam.subjectName);

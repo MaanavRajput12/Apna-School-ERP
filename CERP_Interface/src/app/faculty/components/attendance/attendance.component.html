@@ -11,12 +11,6 @@
     <section class="surface-card">
       <h2 class="section-heading">Session Setup</h2>
       <div class="form-grid">
-        <select [(ngModel)]="selectedFacultyId" (ngModelChange)="onFacultyChange($event)">
-          <option [ngValue]="null">Select faculty</option>
-          <option *ngFor="let faculty of facultyList" [ngValue]="faculty.facultyId">
-            {{ faculty.facultyName }} - {{ faculty.department }}
-          </option>
-        </select>
         <input [(ngModel)]="selectedSemester" (ngModelChange)="refreshView()" placeholder="Semester / year">
         <input [(ngModel)]="selectedDate" type="date">
         <select [(ngModel)]="selectedSlotId">
@@ -27,10 +21,10 @@
         </select>
       </div>
 
-      <div class="metric-strip" *ngIf="selectedFaculty">
+      <div class="metric-strip" *ngIf="faculty">
         <div class="metric-chip">
           <span>Department</span>
-          <strong>{{ selectedFaculty.department }}</strong>
+          <strong>{{ faculty.department }}</strong>
         </div>
         <div class="metric-chip" *ngIf="selectedTeachingSlot">
           <span>Subject</span>

@@ -35,7 +35,13 @@ public class CourseController {
     public List<CourseResponse> getAllCourses() {
         logger.info("Fetching all courses...");
         return courseRepository.findAll().stream()
-            .map(c -> new CourseResponse(c.getCourseId(), c.getCourseName(), c.getCredits()))
+            .map(c -> new CourseResponse(
+                c.getCourseId(),
+                c.getCourseName(),
+                c.getCredits(),
+                c.getDepartment() != null ? c.getDepartment().getDepartmentId() : null,
+                c.getDepartment() != null ? c.getDepartment().getDepartmentName() : null
+            ))
             .collect(Collectors.toList());
     }
 
@@ -45,7 +51,13 @@ public class CourseController {
         Course course = courseRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Course not found with id " + id));
         logger.info("Course with ID: {} fetched successfully", id);
-        return new CourseResponse(course.getCourseId(), course.getCourseName(), course.getCredits());
+        return new CourseResponse(
+            course.getCourseId(),
+            course.getCourseName(),
+            course.getCredits(),
+            course.getDepartment() != null ? course.getDepartment().getDepartmentId() : null,
+            course.getDepartment() != null ? course.getDepartment().getDepartmentName() : null
+        );
     }
 
     @PostMapping
@@ -53,7 +65,13 @@ public class CourseController {
         logger.info("Creating new course: {}", course.getCourseName());
         Course saved = courseRepository.save(course);
         logger.debug("Course created with ID: {}", saved.getCourseId());
-        return new CourseResponse(saved.getCourseId(), saved.getCourseName(), saved.getCredits());
+        return new CourseResponse(
+            saved.getCourseId(),
+            saved.getCourseName(),
+            saved.getCredits(),
+            saved.getDepartment() != null ? saved.getDepartment().getDepartmentId() : null,
+            saved.getDepartment() != null ? saved.getDepartment().getDepartmentName() : null
+        );
     }
 
     @PutMapping("/{id}")
@@ -64,10 +82,17 @@ public class CourseController {
 
         course.setCourseName(courseDetails.getCourseName());
         course.setCredits(courseDetails.getCredits());
+        course.setDepartment(courseDetails.getDepartment());
 
         Course updated = courseRepository.save(course);
         logger.debug("Course updated with ID: {}", updated.getCourseId());
-        return new CourseResponse(updated.getCourseId(), updated.getCourseName(), updated.getCredits());
+        return new CourseResponse(
+            updated.getCourseId(),
+            updated.getCourseName(),
+            updated.getCredits(),
+            updated.getDepartment() != null ? updated.getDepartment().getDepartmentId() : null,
+            updated.getDepartment() != null ? updated.getDepartment().getDepartmentName() : null
+        );
     }
 
     @DeleteMapping("/{id}")
@@ -89,9 +114,18 @@ public class CourseController {
         if (courseDetails.getCredits() != null) {
             course.setCredits(courseDetails.getCredits());
         }
+        if (courseDetails.getDepartment() != null) {
+            course.setDepartment(courseDetails.getDepartment());
+        }
 
         Course updated = courseRepository.save(course);
         logger.debug("Course patched with ID: {}", updated.getCourseId());
-        return new CourseResponse(updated.getCourseId(), updated.getCourseName(), updated.getCredits());
+        return new CourseResponse(
+            updated.getCourseId(),
+            updated.getCourseName(),
+            updated.getCredits(),
+            updated.getDepartment() != null ? updated.getDepartment().getDepartmentId() : null,
+            updated.getDepartment() != null ? updated.getDepartment().getDepartmentName() : null
+        );
     }
 }

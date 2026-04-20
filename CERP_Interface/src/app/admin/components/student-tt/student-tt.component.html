@@ -9,6 +9,33 @@
 
   <div class="section-stack">
     <section class="surface-card">
+      <h2 class="section-heading">Add Student Schedule Row</h2>
+      <p class="section-copy">Create a timetable row by selecting a department from the dropdown.</p>
+
+      <div class="form-grid">
+        <input [(ngModel)]="newTimetable.semester" type="number" placeholder="Semester">
+        <input [(ngModel)]="newTimetable.day" placeholder="Day">
+        <input [(ngModel)]="newTimetable.timeSlot" placeholder="Time slot">
+        <select [(ngModel)]="newTimetable.departmentId" (ngModelChange)="onNewDepartmentChange($event)">
+          <option [ngValue]="null">Select department</option>
+          <option *ngFor="let department of departments" [ngValue]="department.departmentId">
+            {{ department.departmentName }}
+          </option>
+        </select>
+        <select [(ngModel)]="newTimetable.facultyId">
+          <option [ngValue]="null">Select faculty</option>
+          <option *ngFor="let faculty of getFacultyForDepartment(newTimetable.departmentName)" [ngValue]="faculty.facultyId">
+            {{ faculty.facultyName }}
+          </option>
+        </select>
+      </div>
+
+      <div class="cta-row">
+        <button class="btn-primary" (click)="addTimetable()">Add Timetable Row</button>
+      </div>
+    </section>
+
+    <section class="surface-card">
       <h2 class="section-heading">Student Schedule Matrix</h2>
       <p class="section-copy" *ngIf="statusMessage">{{ statusMessage }}</p>
 
@@ -32,8 +59,22 @@
               <td><input [(ngModel)]="row.semester" [disabled]="!row.isEditing"></td>
               <td><input [(ngModel)]="row.day" [disabled]="!row.isEditing"></td>
               <td><input [(ngModel)]="row.timeSlot" [disabled]="!row.isEditing"></td>
-              <td><input [(ngModel)]="row.departmentName" [disabled]="!row.isEditing"></td>
-              <td><input [(ngModel)]="row.facultyName" [disabled]="!row.isEditing"></td>
+              <td>
+                <select [(ngModel)]="row.departmentName" [disabled]="!row.isEditing" (ngModelChange)="onDepartmentChange(row, $event)">
+                  <option [ngValue]="null">Select department</option>
+                  <option *ngFor="let department of departments" [ngValue]="department.departmentName">
+                    {{ department.departmentName }}
+                  </option>
+                </select>
+              </td>
+              <td>
+                <select [(ngModel)]="row.facultyName" [disabled]="!row.isEditing">
+                  <option [ngValue]="null">Select faculty</option>
+                  <option *ngFor="let faculty of getFacultyForDepartment(row.departmentName)" [ngValue]="faculty.facultyName">
+                    {{ faculty.facultyName }}
+                  </option>
+                </select>
+              </td>
               <td>
                 <button class="btn-primary" *ngIf="!row.isEditing" (click)="editRow(i)">Edit</button>
                 <button class="btn-primary" *ngIf="row.isEditing" (click)="saveRow(i)">Save</button>

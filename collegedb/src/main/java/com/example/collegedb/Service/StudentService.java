@@ -2,9 +2,11 @@ package com.example.collegedb.Service;
 
 import java.util.List;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.collegedb.Exception.ConflictException;
 import com.example.collegedb.Exception.ResourceNotFoundException;
 import com.example.collegedb.Repository.CourseRepository;
 import com.example.collegedb.Repository.DepartmentRepository;
@@ -30,19 +32,22 @@ public class StudentService {
     private final DepartmentRepository departmentRepository;
     private final FeesRepository feesRepository;
     private final UsersRepository usersRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public StudentService(
         StudentRepository studentRepository,
         CourseRepository courseRepository,
         DepartmentRepository departmentRepository,
         FeesRepository feesRepository,
-        UsersRepository usersRepository
+        UsersRepository usersRepository,
+        PasswordEncoder passwordEncoder
     ) {
         this.studentRepository = studentRepository;
         this.courseRepository = courseRepository;
         this.departmentRepository = departmentRepository;
         this.feesRepository = feesRepository;
         this.usersRepository = usersRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional(readOnly = true)
@@ -108,6 +113,9 @@ public class StudentService {
         if (request.getUserId() != null) {
             student.setUser(getUser(request.getUserId()));
         }
+        if (request.getLoginPassword() != null && !request.getLoginPassword().trim().isEmpty()) {
+            student.setUser(upsertStudentUser(student.getUser(), student.getEmail(), request.getLoginPassword()));
+        }
 
         return toResponse(studentRepository.save(student));
     }
@@ -131,6 +139,12 @@ public class StudentService {
         student.setCourse(getOptionalCourse(request.getCourseId()));
         student.setDepartment(getOptionalDepartment(request.getDepartmentId()));
         student.setUser(getOptionalUser(request.getUserId()));
+        if (request.getLoginPassword() != null && !request.getLoginPassword().trim().isEmpty()) {
+            student.setUser(upsertStudentUser(student.getUser(), student.getEmail(), request.getLoginPassword()));
+        } else if (student.getUser() != null) {
+            student.getUser().setUsername(student.getEmail().trim());
+            student.getUser().setRole("STUDENT");
+        }
     }
 
     private void apply(Student student, StudentUpdateRequest request) {
@@ -146,6 +160,12 @@ public class StudentService {
         student.setCourse(getOptionalCourse(request.getCourseId()));
         student.setDepartment(getOptionalDepartment(request.getDepartmentId()));
         student.setUser(getOptionalUser(request.getUserId()));
+        if (request.getLoginPassword() != null && !request.getLoginPassword().trim().isEmpty()) {
+            student.setUser(upsertStudentUser(student.getUser(), student.getEmail(), request.getLoginPassword()));
+        } else if (student.getUser() != null) {
+            student.getUser().setUsername(student.getEmail().trim());
+            student.getUser().setRole("STUDENT");
+        }
     }
 
     private Student getExistingStudent(Long id) {
@@ -189,6 +209,21 @@ public class StudentService {
             .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
     }
 
+    private Users upsertStudentUser(Users existingUser, String email, String rawPassword) {
+        String normalizedUsername = email.trim();
+        usersRepository.findByUsername(normalizedUsername)
+            .filter(foundUser -> existingUser == null || !foundUser.getUserId().equals(existingUser.getUserId()))
+            .ifPresent(foundUser -> {
+                throw new ConflictException("Username already exists: " + normalizedUsername);
+            });
+
+        Users user = existingUser != null ? existingUser : new Users();
+        user.setUsername(normalizedUsername);
+        user.setPassword(passwordEncoder.encode(rawPassword.trim()));
+        user.setRole("STUDENT");
+        return usersRepository.save(user);
+    }
+
     private StudentResponse toResponse(Student student) {
         return new StudentResponse(
             student.getStudentId(),
@@ -202,8 +237,9 @@ public class StudentService {
             student.getSemester(),
             student.getDepartment() != null ? student.getDepartment().getDepartmentName() : null,
             student.getFees() != null ? student.getFees().getFeesStatus() : null,
+            student.getFees() != null ? student.getFees().getFeesId() : null,
             student.getCourse() != null ? student.getCourse().getCourseName() : null,
-            student.getUser() != null ? student.getUser().getUserId().toString() : null,
+            student.getUser() != null ? student.getUser().getUserId() : null,
             student.getActive()  
         );
     }

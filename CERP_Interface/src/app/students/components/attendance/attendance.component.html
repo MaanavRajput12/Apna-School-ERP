@@ -10,26 +10,18 @@
   <div class="section-stack">
     <section class="surface-card">
       <h2 class="section-heading">Student Context</h2>
-      <div class="form-grid">
-        <select [(ngModel)]="selectedStudentId" (ngModelChange)="onStudentChange($event)">
-          <option [ngValue]="null">Select student</option>
-          <option *ngFor="let student of students" [ngValue]="student.studentId">
-            {{ student.name }} | {{ student.rollNo }} | {{ student.departmentName }}
-          </option>
-        </select>
-      </div>
-      <div class="metric-strip" *ngIf="selectedStudent">
+      <div class="metric-strip" *ngIf="student">
         <div class="metric-chip">
           <span>Department</span>
-          <strong>{{ selectedStudent.departmentName }}</strong>
+          <strong>{{ student.departmentName }}</strong>
         </div>
         <div class="metric-chip">
           <span>Semester</span>
-          <strong>{{ selectedStudent.semester }}</strong>
+          <strong>{{ student.semester }}</strong>
         </div>
         <div class="metric-chip">
           <span>Roll No</span>
-          <strong>{{ selectedStudent.rollNo }}</strong>
+          <strong>{{ student.rollNo }}</strong>
         </div>
       </div>
     </section>

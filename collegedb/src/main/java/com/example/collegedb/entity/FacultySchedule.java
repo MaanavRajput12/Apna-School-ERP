@@ -22,6 +22,10 @@ public class FacultySchedule {
     private Faculty faculty;
 
     @ManyToOne
+    @JoinColumn(name = "department_id")
+    private Department department;
+
+    @ManyToOne
     @JoinColumn(name="subjectId")
     private Subject subject;
 
@@ -34,6 +38,9 @@ public class FacultySchedule {
 
     public Faculty getFaculty() { return faculty; }
     public void setFaculty(Faculty faculty) { this.faculty = faculty; }
+
+    public Department getDepartment() { return department; }
+    public void setDepartment(Department department) { this.department = department; }
 
     public Subject getSubject() { return subject; }
     public void setSubject(Subject subject) { this.subject = subject; }

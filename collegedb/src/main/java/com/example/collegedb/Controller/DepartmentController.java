@@ -86,6 +86,10 @@ public class DepartmentController {
             department.getDepartmentName(), 
             department.getNumberOfStudents(), 
             department.getNumberOfFaculties());
+
+        department.setDepartmentName(entity.getDepartmentName());
+        department.setNumberOfStudents(entity.getNumberOfStudents());
+        department.setNumberOfFaculties(entity.getNumberOfFaculties());
         
         Department updated = departmentRepository.save(department);
 

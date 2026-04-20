@@ -11,9 +11,8 @@ import { FacultySessionService } from '../../services/faculty-session.service';
   styleUrl: './exam-schedule.component.css'
 })
 export class ExamScheduleComponent implements OnInit {
-  facultyList: Faculty[] = [];
+  faculty: Faculty | null = null;
   examRows: Array<Exam & { department: string }> = [];
-  selectedFacultyId: number | null = null;
 
   constructor(
     private readonly api: ErpApiService,
@@ -21,43 +20,28 @@ export class ExamScheduleComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.selectedFacultyId = this.facultySession.getFacultyId();
-    forkJoin({
-      facultyList: this.api.getFaculty(),
-      exams: this.api.getExams(),
-      subjects: this.api.getSubjects()
-    }).subscribe(({ facultyList, exams, subjects }) => {
-      this.facultyList = facultyList;
-      if (!this.selectedFacultyId && facultyList.length > 0) {
-        this.selectedFacultyId = facultyList[0].facultyId;
-      }
-      this.refreshRows(exams, subjects, facultyList);
-    });
-  }
-
-  changeFaculty(facultyId: number | null): void {
-    this.selectedFacultyId = facultyId;
-    if (facultyId) {
-      this.facultySession.setFacultyId(facultyId);
+    const facultyId = this.facultySession.getFacultyId();
+    if (!facultyId) {
+      return;
     }
-    this.ngOnInit();
-  }
 
-  get selectedFaculty(): Faculty | undefined {
-    return this.facultyList.find(faculty => faculty.facultyId === this.selectedFacultyId);
-  }
-
-  private refreshRows(exams: Exam[], subjects: Subject[], facultyList: Faculty[]): void {
-    const department = this.selectedFaculty?.department;
-    this.examRows = exams
-      .map(exam => {
-        const subject = subjects.find(item => item.name === exam.subjectName);
-        const faculty = facultyList.find(item => item.facultyName === subject?.facultyName);
-        return {
-          ...exam,
-          department: faculty?.department ?? 'Unassigned'
-        };
-      })
-      .filter(exam => !department || exam.department === department);
+    forkJoin({
+      faculty: this.api.getFacultyById(facultyId),
+      exams: this.api.getExams(),
+      subjects: this.api.getSubjects(),
+      facultyList: this.api.getFaculty()
+    }).subscribe(({ faculty, exams, subjects, facultyList }) => {
+      this.faculty = faculty;
+      this.examRows = exams
+        .map(exam => {
+          const subject = subjects.find(item => item.name === exam.subjectName);
+          const examFaculty = facultyList.find(item => item.facultyName === subject?.facultyName);
+          return {
+            ...exam,
+            department: examFaculty?.department ?? 'Unassigned'
+          };
+        })
+        .filter(exam => !faculty.department || exam.department === faculty.department);
+    });
   }
 }

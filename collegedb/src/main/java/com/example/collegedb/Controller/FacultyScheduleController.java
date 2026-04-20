@@ -29,8 +29,10 @@ public class FacultyScheduleController {
         return facultyScheduleRepository.findAll().stream()
             .map(fs -> new FacultyScheduleResponse(
                 fs.getFacultyScheduleId(),
-                fs.getFaculty().getFacultyId(),
-                fs.getSubject().getSubjectId(),
+                fs.getFaculty() != null ? fs.getFaculty().getFacultyId() : null,
+                fs.getDepartment() != null ? fs.getDepartment().getDepartmentId() : null,
+                fs.getDepartment() != null ? fs.getDepartment().getDepartmentName() : null,
+                fs.getSubject() != null ? fs.getSubject().getSubjectId() : null,
                 fs.getScheduleTime().toString(),
                 fs.getClassroom()
             ))
@@ -43,8 +45,10 @@ public class FacultyScheduleController {
             .orElseThrow(() -> new RuntimeException("Faculty Schedule not found with id " + id));
         return new FacultyScheduleResponse(
             fs.getFacultyScheduleId(),
-            fs.getFaculty().getFacultyId(),
-            fs.getSubject().getSubjectId(),
+            fs.getFaculty() != null ? fs.getFaculty().getFacultyId() : null,
+            fs.getDepartment() != null ? fs.getDepartment().getDepartmentId() : null,
+            fs.getDepartment() != null ? fs.getDepartment().getDepartmentName() : null,
+            fs.getSubject() != null ? fs.getSubject().getSubjectId() : null,
             fs.getScheduleTime().toString(),
             fs.getClassroom()
         );
@@ -55,8 +59,10 @@ public class FacultyScheduleController {
         FacultySchedule saved = facultyScheduleRepository.save(facultySchedule);
         return new FacultyScheduleResponse(
             saved.getFacultyScheduleId(),
-            saved.getFaculty().getFacultyId(),
-            saved.getSubject().getSubjectId(),
+            saved.getFaculty() != null ? saved.getFaculty().getFacultyId() : null,
+            saved.getDepartment() != null ? saved.getDepartment().getDepartmentId() : null,
+            saved.getDepartment() != null ? saved.getDepartment().getDepartmentName() : null,
+            saved.getSubject() != null ? saved.getSubject().getSubjectId() : null,
             saved.getScheduleTime().toString(),
             saved.getClassroom()
         );
@@ -68,6 +74,7 @@ public class FacultyScheduleController {
             .orElseThrow(() -> new RuntimeException("Faculty Schedule not found with id " + id));
         
         fs.setFaculty(facultyScheduleDetails.getFaculty());
+        fs.setDepartment(facultyScheduleDetails.getDepartment());
         fs.setSubject(facultyScheduleDetails.getSubject());
         fs.setScheduleTime(facultyScheduleDetails.getScheduleTime());
         fs.setClassroom(facultyScheduleDetails.getClassroom());
@@ -75,8 +82,10 @@ public class FacultyScheduleController {
         FacultySchedule updated = facultyScheduleRepository.save(fs);
         return new FacultyScheduleResponse(
             updated.getFacultyScheduleId(),
-            updated.getFaculty().getFacultyId(),
-            updated.getSubject().getSubjectId(),
+            updated.getFaculty() != null ? updated.getFaculty().getFacultyId() : null,
+            updated.getDepartment() != null ? updated.getDepartment().getDepartmentId() : null,
+            updated.getDepartment() != null ? updated.getDepartment().getDepartmentName() : null,
+            updated.getSubject() != null ? updated.getSubject().getSubjectId() : null,
             updated.getScheduleTime().toString(),
             updated.getClassroom()
         );
@@ -95,6 +104,9 @@ public class FacultyScheduleController {
         if (facultyScheduleDetails.getFaculty() != null) {
             fs.setFaculty(facultyScheduleDetails.getFaculty());
         }
+        if (facultyScheduleDetails.getDepartment() != null) {
+            fs.setDepartment(facultyScheduleDetails.getDepartment());
+        }
         if (facultyScheduleDetails.getSubject() != null) {
             fs.setSubject(facultyScheduleDetails.getSubject());
         }
@@ -108,8 +120,10 @@ public class FacultyScheduleController {
         FacultySchedule updated = facultyScheduleRepository.save(fs);
         return new FacultyScheduleResponse(
             updated.getFacultyScheduleId(),
-            updated.getFaculty().getFacultyId(),
-            updated.getSubject().getSubjectId(),
+            updated.getFaculty() != null ? updated.getFaculty().getFacultyId() : null,
+            updated.getDepartment() != null ? updated.getDepartment().getDepartmentId() : null,
+            updated.getDepartment() != null ? updated.getDepartment().getDepartmentName() : null,
+            updated.getSubject() != null ? updated.getSubject().getSubjectId() : null,
             updated.getScheduleTime().toString(),
             updated.getClassroom()
         );

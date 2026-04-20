@@ -18,8 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.collegedb.Exception.ResourceNotFoundException;
 import com.example.collegedb.Repository.FeesRepository;
+import com.example.collegedb.Repository.StudentRepository;
 import com.example.collegedb.Response.FeesResponse;
 import com.example.collegedb.entity.Fees;
+import com.example.collegedb.entity.Student;
 
 import jakarta.validation.Valid;
 
@@ -31,6 +33,9 @@ public class FeesController {
     @Autowired
     private FeesRepository feesRepository;
 
+    @Autowired
+    private StudentRepository studentRepository;
+
     @GetMapping
     public List<FeesResponse> getAll() {
         logger.info("Fetching all fees records...");
@@ -39,7 +44,9 @@ public class FeesController {
                 f.getFeesId(),
                 f.getAmount(),
                 f.getFeesStatus(),
-                f.getDueDate().toString()
+                f.getDueDate().toString(),
+                f.getStudent() != null ? f.getStudent().getStudentId() : null,
+                f.getStudent() != null ? f.getStudent().getName() : null
             ))
             .collect(Collectors.toList());
     }
@@ -47,12 +54,15 @@ public class FeesController {
     public FeesResponse create(@Valid @RequestBody Fees fees) {
         logger.info("Creating new fees record with amount: {}", fees.getAmount());
         Fees saved = feesRepository.save(fees);
+        linkStudent(saved, fees.getStudentId());
         logger.debug("Fees record created with ID: {}", saved.getFeesId());
         return new FeesResponse(
             saved.getFeesId(),
             saved.getAmount(),
             saved.getFeesStatus(),
-            saved.getDueDate().toString()
+            saved.getDueDate().toString(),
+            saved.getStudent() != null ? saved.getStudent().getStudentId() : null,
+            saved.getStudent() != null ? saved.getStudent().getName() : null
         );
     }
     @PutMapping("{id}")
@@ -70,13 +80,16 @@ public class FeesController {
     existingFees.setDueDate(updatedFees.getDueDate());
 
     Fees updated = feesRepository.save(existingFees);
+    linkStudent(updated, updatedFees.getStudentId());
     logger.info("Successfully updated fees record with ID: {}", id);
 
     return new FeesResponse(
         updated.getFeesId(),
         updated.getAmount(),
         updated.getFeesStatus(),
-        updated.getDueDate().toString()
+        updated.getDueDate().toString(),
+        updated.getStudent() != null ? updated.getStudent().getStudentId() : null,
+        updated.getStudent() != null ? updated.getStudent().getName() : null
     );
 }
 
@@ -110,14 +123,28 @@ public class FeesController {
         }
 
         Fees updated = feesRepository.save(existingFees);
+        linkStudent(updated, updatedFields.getStudentId());
         logger.info("Successfully patched fees record with ID: {}", id);
 
         return new FeesResponse(
             updated.getFeesId(),
             updated.getAmount(),
             updated.getFeesStatus(),
-            updated.getDueDate().toString()
+            updated.getDueDate().toString(),
+            updated.getStudent() != null ? updated.getStudent().getStudentId() : null,
+            updated.getStudent() != null ? updated.getStudent().getName() : null
         );
+    }
+
+    private void linkStudent(Fees fees, Long studentId) {
+        if (studentId == null) {
+            return;
+        }
+        Student student = studentRepository.findById(studentId)
+            .orElseThrow(() -> new ResourceNotFoundException("Student not found with ID: " + studentId));
+        student.setFees(fees);
+        studentRepository.save(student);
+        fees.setStudent(student);
     }
     
 }
