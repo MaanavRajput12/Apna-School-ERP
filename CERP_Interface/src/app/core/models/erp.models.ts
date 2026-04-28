@@ -79,8 +79,15 @@ export interface Subject {
   subjectId: number;
   name: string;
   syllabus: string;
-  courseName: string | null;
+  departmentName: string | null;
   facultyName: string | null;
+  active?: boolean;
+}
+
+export interface SubjectPayload {
+  name: string;
+  department?: { departmentId: number } | null;
+  faculty?: { facultyId: number } | null;
 }
 
 export interface Attendance {

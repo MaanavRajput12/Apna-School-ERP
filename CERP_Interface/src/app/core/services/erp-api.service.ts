@@ -21,6 +21,7 @@ import {
   Student,
   StudentPayload,
   Subject,
+  SubjectPayload,
   Timetable,
   TimetablePayload
 } from '../models/erp.models';
@@ -125,6 +126,18 @@ export class ErpApiService {
       return of([]);
     }
     return this.http.get<Subject[]>(`${this.baseUrl}/subjects`);
+  }
+
+  createSubject(payload: SubjectPayload): Observable<Subject> {
+    return this.http.post<Subject>(`${this.baseUrl}/subjects`, payload);
+  }
+
+  updateSubject(subjectId: number, payload: SubjectPayload): Observable<Subject> {
+    return this.http.put<Subject>(`${this.baseUrl}/subjects/${subjectId}`, payload);
+  }
+
+  deleteSubject(subjectId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/subjects/${subjectId}`);
   }
 
   getAttendance(): Observable<Attendance[]> {

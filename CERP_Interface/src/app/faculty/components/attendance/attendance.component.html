@@ -16,7 +16,7 @@
         <select [(ngModel)]="selectedSlotId">
           <option [ngValue]="null">Select subject and time slot</option>
           <option *ngFor="let slot of teachingSlots" [ngValue]="slot.facultyScheduleId">
-            {{ slot.subjectName }} | {{ slot.courseName }} | {{ slot.scheduleTime }}
+            {{ slot.subjectName }} | {{ slot.departmentName }} | {{ slot.scheduleTime }}
           </option>
         </select>
       </div>

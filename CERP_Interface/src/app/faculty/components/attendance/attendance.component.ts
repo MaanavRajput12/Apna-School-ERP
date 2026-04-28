@@ -8,7 +8,7 @@ interface TeachingSlot {
   facultyScheduleId: number;
   subjectId: number;
   subjectName: string;
-  courseName: string;
+  departmentName: string;
   scheduleTime: string;
   classroom: string;
 }
@@ -78,7 +78,7 @@ export class AttendanceComponent implements OnInit {
           facultyScheduleId: schedule.facultyScheduleId,
           subjectId: schedule.subjectId ?? 0,
           subjectName: subject?.name ?? `Subject #${schedule.subjectId}`,
-          courseName: subject?.courseName ?? 'Unassigned',
+          departmentName: subject?.departmentName ?? 'Unassigned',
           scheduleTime: schedule.scheduleTime,
           classroom: schedule.classroom
         };

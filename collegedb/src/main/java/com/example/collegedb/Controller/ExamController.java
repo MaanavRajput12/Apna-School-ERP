@@ -92,6 +92,7 @@ public class ExamController {
         exam.setExamTime(examDetails.getExamTime());
         exam.setTotaMarks(examDetails.getTotaMarks());
         exam.setSubjectName(examDetails.getSubjectName());
+        exam.setSubject(examDetails.getSubject());
 
         Exam updatedExam = examRepository.save(exam);
         logger.info("Exam updated: {}", updatedExam);
@@ -139,6 +140,9 @@ public class ExamController {
         }
         if (examDetails.getSubjectName() != null) {
             exam.setSubjectName(examDetails.getSubjectName());
+        }
+        if (examDetails.getSubject() != null) {
+            exam.setSubject(examDetails.getSubject());
         }
 
         Exam updatedExam = examRepository.save(exam);

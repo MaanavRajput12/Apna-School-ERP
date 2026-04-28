@@ -9,6 +9,7 @@ import { StudentfeesComponent } from './components/studentfees/studentfees.compo
 import { ExamTTComponent } from './components/exam-tt/exam-tt.component';
 import { CourseComponent } from './components/course/course.component';
 import { DepartmentComponent } from './components/department/department.component';
+import { SubjectComponent } from './components/subject/subject.component';
 
 const routes: Routes = [
   {
@@ -42,6 +43,10 @@ const routes: Routes = [
 {
   path: "departments",
   component: DepartmentComponent
+},
+{
+  path: "subjects",
+  component: SubjectComponent
 },
 {
   path: "examtimetable",

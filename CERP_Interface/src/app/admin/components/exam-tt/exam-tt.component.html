@@ -12,7 +12,12 @@
       <h2 class="section-heading">Add Exam Entry</h2>
       <div class="form-grid">
         <input [(ngModel)]="newExam.examType" placeholder="Exam type">
-        <input [(ngModel)]="newExam.subjectName" placeholder="Subject name">
+        <select [ngModel]="selectedSubjectId" (ngModelChange)="onNewSubjectChange($event)">
+          <option [ngValue]="null">Select subject</option>
+          <option *ngFor="let subject of activeSubjects" [ngValue]="subject.subjectId">
+            {{ subject.name }}
+          </option>
+        </select>
         <input [(ngModel)]="newExam.examDate" type="date">
         <input [(ngModel)]="newExam.examTime" type="time">
         <input [(ngModel)]="newExam.totaMarks" type="number" placeholder="Total marks">
@@ -43,7 +48,14 @@
             <tr *ngFor="let row of exams; let i = index">
               <td>{{ row.examId }}</td>
               <td><input [(ngModel)]="row.examType" [disabled]="!row.isEditing"></td>
-              <td><input [(ngModel)]="row.subjectName" [disabled]="!row.isEditing"></td>
+              <td>
+                <select [ngModel]="rowSubjectIds[row.examId]" (ngModelChange)="onRowSubjectChange(row.examId, $event)" [disabled]="!row.isEditing">
+                  <option [ngValue]="null">Select subject</option>
+                  <option *ngFor="let subject of activeSubjects" [ngValue]="subject.subjectId">
+                    {{ subject.name }}
+                  </option>
+                </select>
+              </td>
               <td><input [(ngModel)]="row.examDate" [disabled]="!row.isEditing" type="date"></td>
               <td><input [(ngModel)]="row.examTime" [disabled]="!row.isEditing" type="time"></td>
               <td><input [(ngModel)]="row.totalMarks" [disabled]="!row.isEditing" type="number"></td>

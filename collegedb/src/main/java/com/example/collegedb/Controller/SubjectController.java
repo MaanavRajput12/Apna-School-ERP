@@ -16,8 +16,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.collegedb.Exception.ResourceNotFoundException;
+import com.example.collegedb.Repository.DepartmentRepository;
+import com.example.collegedb.Repository.FacultyRepository;
 import com.example.collegedb.Repository.SubjectRepository;
 import com.example.collegedb.Response.SubjectResponse;
+import com.example.collegedb.entity.Department;
+import com.example.collegedb.entity.Faculty;
 import com.example.collegedb.entity.Subject;
 
 import jakarta.validation.Valid;
@@ -30,6 +35,12 @@ public class SubjectController {
 
     @Autowired
     private SubjectRepository subjectRepository;
+
+    @Autowired
+    private DepartmentRepository departmentRepository;
+
+    @Autowired
+    private FacultyRepository facultyRepository;
     
     @GetMapping
     public List<SubjectResponse> getAll() {
@@ -39,8 +50,9 @@ public class SubjectController {
                 s.getSubjectId(),
                 s.getName(),
                 s.getSyllabus(),
-                s.getCourse() != null ? s.getCourse().getCourseName() : null,
-                s.getFaculty() != null ? s.getFaculty().getFacultyName() : null
+                s.getDepartment() != null ? s.getDepartment().getDepartmentName() : null,
+                s.getFaculty() != null ? s.getFaculty().getFacultyName() : null,
+                s.isActive()
             ))
             .collect(Collectors.toList());
     }
@@ -55,22 +67,27 @@ public class SubjectController {
             subject.getSubjectId(),
             subject.getName(),
             subject.getSyllabus(),
-            subject.getCourse() != null ? subject.getCourse().getCourseName() : null,
-            subject.getFaculty() != null ? subject.getFaculty().getFacultyName() : null
+            subject.getDepartment() != null ? subject.getDepartment().getDepartmentName() : null,
+            subject.getFaculty() != null ? subject.getFaculty().getFacultyName() : null,
+            subject.isActive()
         );
     }
 
     @PostMapping
     public SubjectResponse create(@Valid @RequestBody Subject subject) {
         logger.info("Creating new subject: {}", subject.getName());
+        subject.setDepartment(resolveDepartment(subject));
+        subject.setFaculty(resolveFaculty(subject));
+        subject.setActive(true);
         Subject saved = subjectRepository.save(subject);
         logger.debug("Subject created with ID: {}", saved.getSubjectId());
         return new SubjectResponse(
             saved.getSubjectId(),
             saved.getName(),
             saved.getSyllabus(),
-            saved.getCourse() != null ? saved.getCourse().getCourseName() : null,
-            saved.getFaculty() != null ? saved.getFaculty().getFacultyName() : null
+            saved.getDepartment() != null ? saved.getDepartment().getDepartmentName() : null,
+            saved.getFaculty() != null ? saved.getFaculty().getFacultyName() : null,
+            saved.isActive()
         );
     }
 
@@ -86,8 +103,8 @@ public class SubjectController {
 
         subject.setName(updatedData.getName());
         subject.setSyllabus(updatedData.getSyllabus());
-        subject.setCourse(updatedData.getCourse());
-        subject.setFaculty(updatedData.getFaculty());
+        subject.setDepartment(resolveDepartment(updatedData));
+        subject.setFaculty(resolveFaculty(updatedData));
 
         Subject updated = subjectRepository.save(subject);
         logger.info("Successfully updated subject with ID: {}", id);
@@ -96,17 +113,19 @@ public class SubjectController {
             updated.getSubjectId(),
             updated.getName(),
             updated.getSyllabus(),
-            updated.getCourse() != null ? updated.getCourse().getCourseName() : null,
-            updated.getFaculty() != null ? updated.getFaculty().getFacultyName() : null
+            updated.getDepartment() != null ? updated.getDepartment().getDepartmentName() : null,
+            updated.getFaculty() != null ? updated.getFaculty().getFacultyName() : null,
+            updated.isActive()
         );
     }
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
-        logger.warn("Attempting to delete subject with ID: {}", id);
+        logger.warn("Attempting to soft delete subject with ID: {}", id);
         Subject subject = subjectRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Subject not found with ID: " + id));
-        subjectRepository.delete(subject);
-        logger.info("Subject deleted successfully with ID: {}", id);
+        subject.setActive(false);
+        subjectRepository.save(subject);
+        logger.info("Subject soft deleted successfully with ID: {}", id);
     }
 
     @PatchMapping("/{id}")
@@ -125,11 +144,11 @@ public class SubjectController {
         if (updatedData.getSyllabus() != null) {
             subject.setSyllabus(updatedData.getSyllabus());
         }
-        if (updatedData.getCourse() != null) {
-            subject.setCourse(updatedData.getCourse());
+        if (updatedData.getDepartment() != null) {
+            subject.setDepartment(resolveDepartment(updatedData));
         }
         if (updatedData.getFaculty() != null) {
-            subject.setFaculty(updatedData.getFaculty());
+            subject.setFaculty(resolveFaculty(updatedData));
         }
 
         Subject updated = subjectRepository.save(subject);
@@ -139,8 +158,29 @@ public class SubjectController {
             updated.getSubjectId(),
             updated.getName(),
             updated.getSyllabus(),
-            updated.getCourse() != null ? updated.getCourse().getCourseName() : null,
-            updated.getFaculty() != null ? updated.getFaculty().getFacultyName() : null
+            updated.getDepartment() != null ? updated.getDepartment().getDepartmentName() : null,
+            updated.getFaculty() != null ? updated.getFaculty().getFacultyName() : null,
+            updated.isActive()
         );
+    }
+
+    private Department resolveDepartment(Subject subject) {
+        if (subject.getDepartment() == null || subject.getDepartment().getDepartmentId() == null) {
+            return null;
+        }
+
+        Long departmentId = subject.getDepartment().getDepartmentId();
+        return departmentRepository.findById(departmentId)
+            .orElseThrow(() -> new ResourceNotFoundException("Department not found with ID: " + departmentId));
+    }
+
+    private Faculty resolveFaculty(Subject subject) {
+        if (subject.getFaculty() == null || subject.getFaculty().getFacultyId() == null) {
+            return null;
+        }
+
+        Long facultyId = subject.getFaculty().getFacultyId();
+        return facultyRepository.findById(facultyId)
+            .orElseThrow(() -> new ResourceNotFoundException("Faculty not found with ID: " + facultyId));
     }
 }

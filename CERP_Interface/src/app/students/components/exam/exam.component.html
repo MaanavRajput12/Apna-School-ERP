@@ -9,6 +9,24 @@
 
   <div class="section-stack">
     <section class="surface-card">
+      <div class="metric-strip" *ngIf="student">
+        <div class="metric-chip">
+          <span>Department</span>
+          <strong>{{ student.departmentName }}</strong>
+        </div>
+        <div class="metric-chip">
+          <span>Semester</span>
+          <strong>{{ student.semester }}</strong>
+        </div>
+        <div class="metric-chip">
+          <span>Course</span>
+          <strong>{{ student.courseName }}</strong>
+        </div>
+      </div>
+    
+
+  <div class="section-stack">
+    <section class="surface-card">
       <h2 class="section-heading">Exam Calendar</h2>
       <p class="section-copy" *ngIf="statusMessage">{{ statusMessage }}</p>
       <div class="table-wrap">

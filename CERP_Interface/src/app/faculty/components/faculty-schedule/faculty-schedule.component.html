@@ -33,7 +33,7 @@
             <tr>
               <th>Schedule ID</th>
               <th>Subject</th>
-              <th>Course</th>
+              <th>Subject Department</th>
               <th>Date & Time</th>
               <th>Classroom</th>
             </tr>
@@ -42,7 +42,7 @@
             <tr *ngFor="let row of scheduleRows">
               <td>{{ row.facultyScheduleId }}</td>
               <td>{{ row.subjectName }}</td>
-              <td>{{ row.courseName }}</td>
+              <td>{{ row.departmentName }}</td>
               <td>{{ row.scheduleTime }}</td>
               <td>{{ row.classroom }}</td>
             </tr>

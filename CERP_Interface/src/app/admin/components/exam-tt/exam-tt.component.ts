@@ -13,6 +13,12 @@ export class ExamTTComponent implements OnInit {
   exams: Array<Exam & { isEditing: boolean }> = [];
   subjects: Subject[] = [];
   statusMessage = '';
+  selectedSubjectId: number | null = null;
+  rowSubjectIds: Record<number, number | null> = {};
+
+  get activeSubjects(): Subject[] {
+    return this.subjects.filter(subject => subject.active !== false);
+  }
 
   newExam: ExamPayload = {
     examType: '',
@@ -37,6 +43,12 @@ export class ExamTTComponent implements OnInit {
       next: ({ exams, subjects }) => {
         this.exams = exams.map(exam => ({ ...exam, isEditing: false }));
         this.subjects = subjects;
+        this.rowSubjectIds = Object.fromEntries(
+          exams.map(exam => [
+            exam.examId,
+            this.subjects.find(subject => subject.name === exam.subjectName)?.subjectId ?? null
+          ])
+        );
       },
       error: () => {
         this.statusMessage = 'Unable to load exam schedule data.';
@@ -45,10 +57,11 @@ export class ExamTTComponent implements OnInit {
   }
 
   addExam(): void {
-    const payload = this.withSubjectReference(this.newExam);
+    const payload = this.withSubjectReference(this.newExam, this.selectedSubjectId);
     this.api.createExam(payload).subscribe({
       next: createdExam => {
         this.exams = [{ ...createdExam, isEditing: false }, ...this.exams];
+        this.rowSubjectIds[createdExam.examId] = this.selectedSubjectId;
         this.newExam = {
           examType: '',
           examDate: '',
@@ -57,6 +70,7 @@ export class ExamTTComponent implements OnInit {
           subjectName: '',
           subject: null
         };
+        this.selectedSubjectId = null;
         this.statusMessage = 'Exam schedule added successfully.';
       },
       error: () => {
@@ -77,7 +91,7 @@ export class ExamTTComponent implements OnInit {
       examTime: row.examTime,
       totaMarks: row.totalMarks,
       subjectName: row.subjectName
-    });
+    }, this.rowSubjectIds[row.examId] ?? null);
 
     this.api.updateExam(row.examId, payload).subscribe({
       next: updatedExam => {
@@ -94,6 +108,7 @@ export class ExamTTComponent implements OnInit {
     this.api.deleteExam(examId).subscribe({
       next: () => {
         this.exams = this.exams.filter(exam => exam.examId !== examId);
+        delete this.rowSubjectIds[examId];
         this.statusMessage = 'Exam schedule removed successfully.';
       },
       error: () => {
@@ -102,10 +117,26 @@ export class ExamTTComponent implements OnInit {
     });
   }
 
-  private withSubjectReference(payload: ExamPayload): ExamPayload {
-    const subjectId = this.subjects.find(subject => subject.name === payload.subjectName)?.subjectId;
+  onNewSubjectChange(subjectId: number | null): void {
+    const subject = this.subjects.find(item => item.subjectId === subjectId) ?? null;
+    this.selectedSubjectId = subjectId;
+    this.newExam.subjectName = subject?.name ?? '';
+  }
+
+  onRowSubjectChange(examId: number, subjectId: number | null): void {
+    const exam = this.exams.find(item => item.examId === examId);
+    const subject = this.subjects.find(item => item.subjectId === subjectId) ?? null;
+    this.rowSubjectIds[examId] = subjectId;
+    if (exam) {
+      exam.subjectName = subject?.name ?? '';
+    }
+  }
+
+  private withSubjectReference(payload: ExamPayload, subjectId: number | null): ExamPayload {
+    const subject = this.subjects.find(item => item.subjectId === subjectId) ?? null;
     return {
       ...payload,
+      subjectName: subject?.name ?? payload.subjectName,
       subject: subjectId ? { subjectId } : null
     };
   }

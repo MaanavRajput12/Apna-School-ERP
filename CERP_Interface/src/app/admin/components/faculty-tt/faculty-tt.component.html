@@ -21,7 +21,7 @@
         </select>
         <select [(ngModel)]="newSchedule.subjectName" (ngModelChange)="onSubjectChange($event)">
           <option value="">Select subject</option>
-          <option *ngFor="let subject of subjects" [ngValue]="subject.name">
+          <option *ngFor="let subject of activeSubjects" [ngValue]="subject.name">
             {{ subject.name }}
           </option>
         </select>
@@ -44,7 +44,7 @@
             <tr>
               <th>ID</th>
               <th>Department</th>
-              <th>Course</th>
+              <th>Subject Department</th>
               <th>Subject</th>
               <th>Classroom</th>
               <th>Schedule Time</th>
@@ -62,11 +62,11 @@
                   </option>
                 </select>
               </td>
-              <td>{{ row.course }}</td>
+              <td>{{ row.departmentLabel }}</td>
               <td>
                 <select [(ngModel)]="row.subjectName" [disabled]="!row.isEditing" (ngModelChange)="onRowSubjectChange(row, $event)">
                   <option value="">Select subject</option>
-                  <option *ngFor="let subject of subjects" [ngValue]="subject.name">
+                  <option *ngFor="let subject of activeSubjects" [ngValue]="subject.name">
                     {{ subject.name }}
                   </option>
                 </select>

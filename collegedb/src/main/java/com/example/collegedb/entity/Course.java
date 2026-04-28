@@ -33,9 +33,6 @@ public class Course {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<Student> students;
 
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
-    private List<Subject> subjects;
-
     // Getters and Setters
     public Long getCourseId() { return courseId; }
     public void setCourseId(Long courseId) { this.courseId = courseId; }
@@ -51,9 +48,6 @@ public class Course {
 
     public List<Student> getStudents() { return students; }
     public void setStudents(List<Student> students) { this.students = students; }
-
-    public List<Subject> getSubjects() { return subjects; }
-    public void setSubjects(List<Subject> subjects) { this.subjects = subjects; }
 
     public Department getDepartment() { return department; }
     public void setDepartment(Department department) { this.department = department; }

@@ -12,7 +12,7 @@ import { FacultySessionService } from '../../services/faculty-session.service';
 })
 export class FacultyScheduleComponent implements OnInit {
   faculty: Faculty | null = null;
-  scheduleRows: Array<FacultySchedule & { subjectName: string; courseName: string }> = [];
+  scheduleRows: Array<FacultySchedule & { subjectName: string; departmentName: string }> = [];
 
   constructor(
     private readonly api: ErpApiService,
@@ -38,7 +38,7 @@ export class FacultyScheduleComponent implements OnInit {
           return {
             ...schedule,
             subjectName: subject?.name ?? `Subject #${schedule.subjectId}`,
-            courseName: subject?.courseName ?? 'Unassigned'
+            departmentName: subject?.departmentName ?? 'Unassigned'
           };
         });
     });

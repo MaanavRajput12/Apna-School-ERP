@@ -26,6 +26,9 @@ public class Department {
     @OneToMany(mappedBy = "department")
     private List<Timetable> Timetable;
 
+    @OneToMany(mappedBy = "department")
+    private List<Subject> subjects;
+
     // Getters and Setters
     public Long getDepartmentId() {return departmentId;}
     public void setDepartmentId(Long departmentId) {this.departmentId = departmentId;}
@@ -42,5 +45,8 @@ public class Department {
 
     public List<Timetable> getTimetables() {return Timetable;}
     public void setTimetables(List<Timetable> timetables) {this.Timetable = timetables;}
+
+    public List<Subject> getSubjects() { return subjects; }
+    public void setSubjects(List<Subject> subjects) { this.subjects = subjects; }
 
 }

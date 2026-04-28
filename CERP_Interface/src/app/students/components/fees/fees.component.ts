@@ -47,4 +47,8 @@ export class FeesComponent implements OnInit {
     }
     return this.fee.feesStatus?.toLowerCase().includes('paid') ? 0 : this.fee.amount;
   }
+
+  get effectiveFeeStatus(): string {
+    return this.fee?.feesStatus || this.student?.feesStatus || 'Status unavailable';
+  }
 }

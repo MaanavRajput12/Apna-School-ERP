@@ -14,6 +14,7 @@ import { ExamTTComponent } from './components/exam-tt/exam-tt.component';
 import { StudentfeesComponent } from './components/studentfees/studentfees.component';
 import { CourseComponent } from './components/course/course.component';
 import { DepartmentComponent } from './components/department/department.component';
+import { SubjectComponent } from './components/subject/subject.component';
 
 
 @NgModule({
@@ -28,7 +29,8 @@ import { DepartmentComponent } from './components/department/department.componen
     ExamTTComponent,
     StudentfeesComponent,
     CourseComponent,
-    DepartmentComponent
+    DepartmentComponent,
+    SubjectComponent
   ],
   imports: [
     CommonModule,
