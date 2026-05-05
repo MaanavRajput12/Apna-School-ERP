@@ -2,9 +2,10 @@ import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
+import { environment } from '../../../environments/environment';
 import {
   Attendance,
-  AttendancePayload,
+  AttendancePercentageResponse,
   Course,
   CoursePayload,
   Department,
@@ -20,6 +21,7 @@ import {
   LoginResponse,
   Student,
   StudentPayload,
+  SubjectAttendancePercentage,
   Subject,
   SubjectPayload,
   Timetable,
@@ -28,7 +30,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class ErpApiService {
-  private readonly baseUrl = 'http://localhost:8080';
+  private readonly baseUrl = environment.apiBaseUrl;
   private readonly platformId = inject(PLATFORM_ID);
 
   constructor(private readonly http: HttpClient) {}
@@ -147,12 +149,12 @@ export class ErpApiService {
     return this.http.get<Attendance[]>(`${this.baseUrl}/attendance`);
   }
 
-  createAttendance(payload: AttendancePayload): Observable<Attendance> {
-    return this.http.post<Attendance>(`${this.baseUrl}/attendance`, payload);
+  getAttendancePercentage(studentId: number): Observable<AttendancePercentageResponse> {
+    return this.http.get<AttendancePercentageResponse>(`${this.baseUrl}/api/attendance/percentage/${studentId}`);
   }
 
-  updateAttendance(attendanceId: number, payload: AttendancePayload): Observable<Attendance> {
-    return this.http.put<Attendance>(`${this.baseUrl}/attendance/${attendanceId}`, payload);
+  getStudentSubjectAttendancePercentages(studentId: number): Observable<SubjectAttendancePercentage[]> {
+    return this.http.get<SubjectAttendancePercentage[]>(`${this.baseUrl}/api/attendance/percentage/${studentId}/subjects`);
   }
 
   getTimetables(): Observable<Timetable[]> {

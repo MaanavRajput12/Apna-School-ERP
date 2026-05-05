@@ -10,21 +10,78 @@ import { fileURLToPath } from 'node:url';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
+const backendUrl = process.env['BACKEND_URL'] || 'http://localhost:8080';
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
-/**
- * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
- *
- * Example:
- * ```ts
- * app.get('/api/**', (req, res) => {
- *   // Handle API request
- * });
- * ```
- */
+const proxiedPrefixes = [
+  '/api',
+  '/auth',
+  '/students',
+  '/faculty',
+  '/departments',
+  '/course',
+  '/subjects',
+  '/attendance',
+  '/timetables',
+  '/facultySchedule',
+  '/exams'
+];
+
+app.use(async (req, res, next) => {
+  const matchesProxy = proxiedPrefixes.some(prefix => req.path.startsWith(prefix));
+  if (!matchesProxy) {
+    next();
+    return;
+  }
+
+  try {
+    const targetUrl = new URL(req.originalUrl, backendUrl);
+    const headers = new Headers();
+
+    for (const [key, value] of Object.entries(req.headers)) {
+      if (value === undefined || key.toLowerCase() === 'host') {
+        continue;
+      }
+      if (Array.isArray(value)) {
+        value.forEach(entry => headers.append(key, entry));
+      } else {
+        headers.set(key, value);
+      }
+    }
+
+    let body: string | undefined;
+    if (!['GET', 'HEAD'].includes(req.method.toUpperCase())) {
+      body = await new Promise<string>((resolveBody, rejectBody) => {
+        let data = '';
+        req.setEncoding('utf8');
+        req.on('data', chunk => { data += chunk; });
+        req.on('end', () => resolveBody(data));
+        req.on('error', rejectBody);
+      });
+    }
+
+    const response = await fetch(targetUrl, {
+      method: req.method,
+      headers,
+      body
+    });
+
+    res.status(response.status);
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase() === 'content-encoding') {
+        return;
+      }
+      res.setHeader(key, value);
+    });
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    res.send(buffer);
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * Serve static files from /browser

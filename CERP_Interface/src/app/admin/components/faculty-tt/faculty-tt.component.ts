@@ -6,6 +6,7 @@ import { ErpApiService } from '../../../core/services/erp-api.service';
 type EditableFacultySchedule = FacultySchedule & {
   subjectName: string;
   departmentLabel: string;
+  assignedFacultyId: number | null;
   isEditing: boolean;
 };
 
@@ -24,6 +25,15 @@ export class FacultyTTComponent implements OnInit {
   get activeSubjects(): Subject[] {
     return this.subjects.filter(subject => subject.active !== false);
   }
+
+  get filteredNewSubjects(): Subject[] {
+    if (!this.newSchedule.departmentId) {
+      return this.activeSubjects;
+    }
+
+    const departmentName = this.departments.find(department => department.departmentId === this.newSchedule.departmentId)?.departmentName;
+    return this.activeSubjects.filter(subject => subject.departmentName === departmentName);
+  }
   newSchedule: EditableFacultySchedule = {
     facultyScheduleId: 0,
     facultyId: null,
@@ -32,6 +42,7 @@ export class FacultyTTComponent implements OnInit {
     subjectId: null,
     subjectName: '',
     departmentLabel: 'Unassigned',
+    assignedFacultyId: null,
     scheduleTime: '',
     classroom: '',
     isEditing: false
@@ -59,6 +70,7 @@ export class FacultyTTComponent implements OnInit {
             ...schedule,
             subjectName: subject?.name ?? `Subject #${schedule.subjectId}`,
             departmentLabel: subject?.departmentName ?? 'Unassigned',
+            assignedFacultyId: subject?.facultyId ?? null,
             isEditing: false
           };
         });
@@ -76,6 +88,7 @@ export class FacultyTTComponent implements OnInit {
   saveRow(index: number): void {
     const row = this.facultyTimetable[index];
     const subjectId = this.subjects.find(subject => subject.name === row.subjectName)?.subjectId;
+    const assignedFacultyId = this.subjects.find(subject => subject.name === row.subjectName)?.facultyId ?? null;
 
     if (!row.departmentId || !subjectId) {
       this.statusMessage = 'Department and subject must match existing records before saving.';
@@ -87,7 +100,7 @@ export class FacultyTTComponent implements OnInit {
       subject: { subjectId },
       scheduleTime: row.scheduleTime,
       classroom: row.classroom,
-      faculty: null
+      faculty: assignedFacultyId ? { facultyId: assignedFacultyId } : null
     };
 
     this.api.updateFacultySchedule(row.facultyScheduleId, payload).subscribe({
@@ -98,6 +111,7 @@ export class FacultyTTComponent implements OnInit {
           ...updatedSchedule,
           subjectName: subject?.name ?? row.subjectName,
           departmentLabel: subject?.departmentName ?? row.departmentLabel,
+          assignedFacultyId: subject?.facultyId ?? null,
           isEditing: false
         };
         this.statusMessage = 'Faculty schedule updated successfully.';
@@ -110,6 +124,7 @@ export class FacultyTTComponent implements OnInit {
 
   addSchedule(): void {
     const subjectId = this.subjects.find(subject => subject.name === this.newSchedule.subjectName)?.subjectId;
+    const assignedFacultyId = this.subjects.find(subject => subject.name === this.newSchedule.subjectName)?.facultyId ?? null;
 
     if (!this.newSchedule.departmentId || !subjectId) {
       this.statusMessage = 'Select a department and subject before creating the faculty timetable.';
@@ -121,7 +136,7 @@ export class FacultyTTComponent implements OnInit {
       subject: { subjectId },
       scheduleTime: this.newSchedule.scheduleTime,
       classroom: this.newSchedule.classroom,
-      faculty: null
+      faculty: assignedFacultyId ? { facultyId: assignedFacultyId } : null
     };
 
     this.api.createFacultySchedule(payload).subscribe({
@@ -131,6 +146,7 @@ export class FacultyTTComponent implements OnInit {
           ...createdSchedule,
           subjectName: subject?.name ?? this.newSchedule.subjectName,
           departmentLabel: subject?.departmentName ?? 'Unassigned',
+          assignedFacultyId: subject?.facultyId ?? null,
           isEditing: false
         }, ...this.facultyTimetable];
         this.newSchedule = {
@@ -141,6 +157,7 @@ export class FacultyTTComponent implements OnInit {
           subjectId: null,
           subjectName: '',
           departmentLabel: 'Unassigned',
+          assignedFacultyId: null,
           scheduleTime: '',
           classroom: '',
           isEditing: false
@@ -157,11 +174,18 @@ export class FacultyTTComponent implements OnInit {
     const subject = this.subjects.find(item => item.name === subjectName);
     this.newSchedule.subjectName = subjectName;
     this.newSchedule.departmentLabel = subject?.departmentName ?? 'Unassigned';
+    this.newSchedule.assignedFacultyId = subject?.facultyId ?? null;
+    if (subject?.departmentName) {
+      this.newSchedule.departmentId = this.departments.find(
+        department => department.departmentName === subject.departmentName
+      )?.departmentId ?? this.newSchedule.departmentId;
+    }
   }
 
   onRowSubjectChange(row: EditableFacultySchedule, subjectName: string): void {
     const subject = this.subjects.find(item => item.name === subjectName);
     row.subjectName = subjectName;
     row.departmentLabel = subject?.departmentName ?? 'Unassigned';
+    row.assignedFacultyId = subject?.facultyId ?? null;
   }
 }

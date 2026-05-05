@@ -1,1 +1,47 @@
 
+.form-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.field span {
+  font-weight: 600;
+}
+
+.field input,
+.field select {
+  border: 1px solid #cfd8e3;
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+}
+
+.attendance-toggle {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.attendance-toggle label {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.actions {
+  margin-top: 1.5rem;
+}
+
+.section-copy--error {
+  color: #b42318;
+}
+
+.section-copy--success {
+  color: #027a48;
+}

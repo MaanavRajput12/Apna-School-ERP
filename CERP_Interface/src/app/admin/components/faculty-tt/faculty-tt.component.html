@@ -21,7 +21,7 @@
         </select>
         <select [(ngModel)]="newSchedule.subjectName" (ngModelChange)="onSubjectChange($event)">
           <option value="">Select subject</option>
-          <option *ngFor="let subject of activeSubjects" [ngValue]="subject.name">
+          <option *ngFor="let subject of filteredNewSubjects" [ngValue]="subject.name">
             {{ subject.name }}
           </option>
         </select>

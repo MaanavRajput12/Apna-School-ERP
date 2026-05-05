@@ -1,17 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { forkJoin } from 'rxjs';
-import { Attendance, Student, Subject } from '../../../core/models/erp.models';
+import { AttendancePercentageResponse, Student, SubjectAttendancePercentage } from '../../../core/models/erp.models';
 import { ErpApiService } from '../../../core/services/erp-api.service';
 import { StudentSessionService } from '../../services/student-session.service';
-
-interface AttendanceSummary {
-  subjectId: number;
-  subjectName: string;
-  attended: number;
-  total: number;
-  percentage: number;
-  status: string;
-}
 
 @Component({
   selector: 'app-attendance',
@@ -21,7 +12,8 @@ interface AttendanceSummary {
 })
 export class AttendanceComponent implements OnInit {
   student: Student | null = null;
-  attendanceRows: AttendanceSummary[] = [];
+  attendancePercentage: number | null = null;
+  subjectWiseAttendance: SubjectAttendancePercentage[] = [];
   statusMessage = '';
 
   constructor(
@@ -38,12 +30,13 @@ export class AttendanceComponent implements OnInit {
 
     forkJoin({
       student: this.api.getStudent(studentId),
-      attendance: this.api.getAttendance(),
-      subjects: this.api.getSubjects()
+      attendancePercentage: this.api.getAttendancePercentage(studentId),
+      subjectWiseAttendance: this.api.getStudentSubjectAttendancePercentages(studentId)
     }).subscribe({
-      next: ({ student, attendance, subjects }) => {
+      next: ({ student, attendancePercentage, subjectWiseAttendance }) => {
         this.student = student;
-        this.refreshSummary(attendance, subjects, student.studentId);
+        this.applyAttendancePercentage(attendancePercentage);
+        this.subjectWiseAttendance = subjectWiseAttendance;
       },
       error: () => {
         this.statusMessage = 'Unable to load attendance data.';
@@ -51,31 +44,11 @@ export class AttendanceComponent implements OnInit {
     });
   }
 
-  private refreshSummary(attendance: Attendance[], subjects: Subject[], studentId: number): void {
-    const studentAttendance = attendance.filter(row => row.studentId === studentId);
-    const summaryMap = new Map<number, AttendanceSummary>();
+  private applyAttendancePercentage(response: AttendancePercentageResponse): void {
+    this.attendancePercentage = response.percentage;
+  }
 
-    studentAttendance.forEach(row => {
-      if (!row.subjectId) {
-        return;
-      }
-      const subject = subjects.find(item => item.subjectId === row.subjectId);
-      const current = summaryMap.get(row.subjectId) ?? {
-        subjectId: row.subjectId,
-        subjectName: subject?.name ?? `Subject #${row.subjectId}`,
-        attended: 0,
-        total: 0,
-        percentage: 0,
-        status: 'Monitor'
-      };
-
-      current.total += 1;
-      current.attended += row.present ? 1 : 0;
-      current.percentage = current.total === 0 ? 0 : Number(((current.attended / current.total) * 100).toFixed(1));
-      current.status = current.percentage >= 85 ? 'On Track' : current.percentage >= 75 ? 'Comfortable' : 'Monitor';
-      summaryMap.set(row.subjectId, current);
-    });
-
-    this.attendanceRows = Array.from(summaryMap.values());
+  trackBySubjectId(_: number, row: SubjectAttendancePercentage): number {
+    return row.subjectId;
   }
 }

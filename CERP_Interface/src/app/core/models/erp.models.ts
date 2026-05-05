@@ -79,6 +79,7 @@ export interface Subject {
   subjectId: number;
   name: string;
   syllabus: string;
+  facultyId?: number | null;
   departmentName: string | null;
   facultyName: string | null;
   active?: boolean;
@@ -91,20 +92,43 @@ export interface SubjectPayload {
 }
 
 export interface Attendance {
-  attendanceId: number;
+  id: number;
   studentId: number | null;
   date: string;
-  present: boolean;
+  status: AttendanceStatus;
   subjectId: number | null;
-  facultyId: number | null;
 }
 
-export interface AttendancePayload {
+export type AttendanceStatus = 'PRESENT' | 'ABSENT';
+
+export interface AttendanceMarkRequest {
+  studentId: number;
   date: string;
-  present: boolean;
-  student: { studentId: number };
-  subject: { subjectId: number };
-  faculty: { facultyId: number };
+  subjectId?: number | null;
+  status: AttendanceStatus;
+}
+
+export interface AttendancePercentageResponse {
+  studentId: number;
+  percentage: number;
+}
+
+export interface SubjectAttendancePercentage {
+  subjectId: number;
+  subjectName: string;
+  presentCount: number;
+  totalClasses: number;
+  percentage: number;
+}
+
+export interface DepartmentAttendanceStudent {
+  studentId: number;
+  name: string;
+  rollNo: string;
+  department: string | null;
+  course: string | null;
+  semester: string;
+  attendancePercentage: number;
 }
 
 export interface Timetable {

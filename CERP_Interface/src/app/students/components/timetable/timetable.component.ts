@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { forkJoin } from 'rxjs';
-import { Student, Timetable } from '../../../core/models/erp.models';
+import { Faculty, Student, Timetable } from '../../../core/models/erp.models';
 import { ErpApiService } from '../../../core/services/erp-api.service';
 import { StudentSessionService } from '../../services/student-session.service';
 
@@ -29,19 +29,26 @@ export class TimetableComponent implements OnInit {
 
     forkJoin({
       student: this.api.getStudent(studentId),
-      timetables: this.api.getTimetables()
+      timetables: this.api.getTimetables(),
+      facultyList: this.api.getFaculty()
     }).subscribe({
-      next: ({ student, timetables }) => {
+      next: ({ student, timetables, facultyList }) => {
         this.student = student;
         const department = this.normalize(student.departmentName);
         const semester = this.normalizeSemester(student.semester);
         this.timetableRows = timetables.filter(row => {
           const rowDepartment = this.normalize(row.departmentName);
           const rowSemester = this.normalizeSemester(row.semester);
+          const facultyDepartment = this.getFacultyDepartment(row.facultyName, facultyList);
           const departmentMatches = !department || rowDepartment === department;
+          const fallbackDepartmentMatches = !department || facultyDepartment === department;
           const semesterMatches = !semester || !rowSemester || rowSemester === semester;
-          return departmentMatches && semesterMatches;
+          return (departmentMatches || fallbackDepartmentMatches) && semesterMatches;
         });
+
+        if (this.timetableRows.length === 0) {
+          this.statusMessage = 'No timetable rows matched your department and semester yet.';
+        }
       },
       error: () => {
         this.statusMessage = 'Unable to load timetable data.';
@@ -57,5 +64,10 @@ export class TimetableComponent implements OnInit {
     const normalized = String(value ?? '').trim().toLowerCase();
     const digits = normalized.replace(/[^0-9]/g, '');
     return digits || normalized;
+  }
+
+  private getFacultyDepartment(facultyName: string | null | undefined, facultyList: Faculty[]): string {
+    const faculty = facultyList.find(row => this.normalize(row.facultyName) === this.normalize(facultyName));
+    return this.normalize(faculty?.department);
   }
 }

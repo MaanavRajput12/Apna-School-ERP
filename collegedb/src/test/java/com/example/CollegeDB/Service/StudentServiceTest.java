@@ -18,6 +18,7 @@ import com.example.collegedb.Exception.ResourceNotFoundException;
 import com.example.collegedb.Repository.CourseRepository;
 import com.example.collegedb.Repository.DepartmentRepository;
 import com.example.collegedb.Repository.FeesRepository;
+import com.example.collegedb.Repository.AttendanceRepository;
 import com.example.collegedb.Repository.StudentRepository;
 import com.example.collegedb.Repository.UsersRepository;
 import com.example.collegedb.Service.StudentService;
@@ -32,6 +33,7 @@ import com.example.collegedb.entity.Users;
 class StudentServiceTest {
 
     private StudentRepository studentRepository;
+    private AttendanceRepository attendanceRepository;
     private CourseRepository courseRepository;
     private DepartmentRepository departmentRepository;
     private FeesRepository feesRepository;
@@ -42,6 +44,7 @@ class StudentServiceTest {
     @BeforeEach
     void setUp() {
         studentRepository = org.mockito.Mockito.mock(StudentRepository.class);
+        attendanceRepository = org.mockito.Mockito.mock(AttendanceRepository.class);
         courseRepository = org.mockito.Mockito.mock(CourseRepository.class);
         departmentRepository = org.mockito.Mockito.mock(DepartmentRepository.class);
         feesRepository = org.mockito.Mockito.mock(FeesRepository.class);
@@ -49,6 +52,7 @@ class StudentServiceTest {
         passwordEncoder = org.mockito.Mockito.mock(PasswordEncoder.class);
         studentService = new StudentService(
             studentRepository,
+            attendanceRepository,
             courseRepository,
             departmentRepository,
             feesRepository,

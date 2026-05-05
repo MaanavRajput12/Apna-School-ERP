@@ -9,6 +9,7 @@
 
   <div class="section-stack">
     <section class="surface-card">
+      <p class="section-copy" *ngIf="statusMessage">{{ statusMessage }}</p>
       <div class="metric-strip" *ngIf="faculty">
         <div class="metric-chip">
           <span>Faculty</span>

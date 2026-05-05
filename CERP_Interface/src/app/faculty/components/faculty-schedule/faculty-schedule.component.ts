@@ -13,6 +13,7 @@ import { FacultySessionService } from '../../services/faculty-session.service';
 export class FacultyScheduleComponent implements OnInit {
   faculty: Faculty | null = null;
   scheduleRows: Array<FacultySchedule & { subjectName: string; departmentName: string }> = [];
+  statusMessage = '';
 
   constructor(
     private readonly api: ErpApiService,
@@ -22,6 +23,7 @@ export class FacultyScheduleComponent implements OnInit {
   ngOnInit(): void {
     const facultyId = this.facultySession.getFacultyId();
     if (!facultyId) {
+      this.statusMessage = 'Faculty session not found.';
       return;
     }
 
@@ -29,18 +31,40 @@ export class FacultyScheduleComponent implements OnInit {
       faculty: this.api.getFacultyById(facultyId),
       schedules: this.api.getFacultySchedules(),
       subjects: this.api.getSubjects()
-    }).subscribe(({ faculty, schedules, subjects }) => {
-      this.faculty = faculty;
-      this.scheduleRows = schedules
-        .filter(schedule => schedule.departmentName === faculty.department)
-        .map(schedule => {
-          const subject = subjects.find(entry => entry.subjectId === schedule.subjectId);
-          return {
-            ...schedule,
-            subjectName: subject?.name ?? `Subject #${schedule.subjectId}`,
-            departmentName: subject?.departmentName ?? 'Unassigned'
-          };
-        });
+    }).subscribe({
+      next: ({ faculty, schedules, subjects }) => {
+        this.faculty = faculty;
+        const facultyDepartment = this.normalize(faculty.department);
+        this.scheduleRows = schedules
+          .filter(schedule => {
+            const subject = subjects.find(entry => entry.subjectId === schedule.subjectId);
+            const scheduleDepartment = this.normalize(schedule.departmentName);
+            const subjectDepartment = this.normalize(subject?.departmentName);
+            const assignedFacultyMatches = schedule.facultyId === faculty.facultyId;
+            const subjectFacultyMatches = subject?.facultyId === faculty.facultyId;
+            const departmentMatches = scheduleDepartment === facultyDepartment || subjectDepartment === facultyDepartment;
+            return assignedFacultyMatches || subjectFacultyMatches || departmentMatches;
+          })
+          .map(schedule => {
+            const subject = subjects.find(entry => entry.subjectId === schedule.subjectId);
+            return {
+              ...schedule,
+              subjectName: subject?.name ?? `Subject #${schedule.subjectId}`,
+              departmentName: subject?.departmentName ?? 'Unassigned'
+            };
+          });
+
+        if (this.scheduleRows.length === 0) {
+          this.statusMessage = 'No teaching slots are assigned to your profile or department yet.';
+        }
+      },
+      error: () => {
+        this.statusMessage = 'Unable to load faculty schedule data.';
+      }
     });
+  }
+
+  private normalize(value: string | null | undefined): string {
+    return (value ?? '').trim().toLowerCase();
   }
 }

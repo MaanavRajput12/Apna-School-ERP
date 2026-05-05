@@ -1,17 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { forkJoin } from 'rxjs';
-import { Attendance, AttendancePayload, Faculty, FacultySchedule, Student, Subject } from '../../../core/models/erp.models';
-import { ErpApiService } from '../../../core/services/erp-api.service';
+import { FormBuilder, Validators } from '@angular/forms';
+import { forkJoin, of } from 'rxjs';
+import { AttendanceMarkRequest, AttendanceStatus, Department, DepartmentAttendanceStudent, Faculty, Subject } from '../../../core/models/erp.models';
 import { FacultySessionService } from '../../services/faculty-session.service';
-
-interface TeachingSlot {
-  facultyScheduleId: number;
-  subjectId: number;
-  subjectName: string;
-  departmentName: string;
-  scheduleTime: string;
-  classroom: string;
-}
+import { FacultyAttendanceApiService } from '../../services/faculty-attendance-api.service';
 
 @Component({
   selector: 'app-attendance',
@@ -21,140 +13,159 @@ interface TeachingSlot {
 })
 export class AttendanceComponent implements OnInit {
   faculty: Faculty | null = null;
-  students: Student[] = [];
+  departments: Department[] = [];
   subjects: Subject[] = [];
-  attendance: Attendance[] = [];
-  schedules: FacultySchedule[] = [];
-  filteredStudents: Student[] = [];
-  teachingSlots: TeachingSlot[] = [];
-  statusMessage = '';
-
-  selectedSemester = '';
-  selectedDate = new Date().toISOString().slice(0, 10);
-  selectedSlotId: number | null = null;
+  availableSubjects: Subject[] = [];
+  students: DepartmentAttendanceStudent[] = [];
+  attendanceMap: Record<number, AttendanceStatus> = {};
+  errorMessage = '';
+  successMessage = '';
+  isLoadingDepartments = false;
+  isLoadingStudents = false;
+  isSubmitting = false;
+  readonly attendanceForm;
 
   constructor(
-    private readonly api: ErpApiService,
+    private readonly formBuilder: FormBuilder,
+    private readonly attendanceApi: FacultyAttendanceApiService,
     private readonly facultySession: FacultySessionService
-  ) {}
+  ) {
+    this.attendanceForm = this.formBuilder.nonNullable.group({
+      department: ['', Validators.required],
+      subjectId: [0, [Validators.required, Validators.min(1)]],
+      date: [new Date().toISOString().slice(0, 10), Validators.required]
+    });
+  }
 
   ngOnInit(): void {
     const facultyId = this.facultySession.getFacultyId();
-    if (!facultyId) {
-      this.statusMessage = 'Faculty session not found.';
-      return;
-    }
+    this.isLoadingDepartments = true;
+    this.clearMessages();
 
-    forkJoin({
-      faculty: this.api.getFacultyById(facultyId),
-      students: this.api.getStudents(),
-      subjects: this.api.getSubjects(),
-      attendance: this.api.getAttendance(),
-      schedules: this.api.getFacultySchedules()
-    }).subscribe({
-      next: ({ faculty, students, subjects, attendance, schedules }) => {
+    const request$ = forkJoin({
+      departments: this.attendanceApi.getDepartments(),
+      faculty: facultyId ? this.attendanceApi.getFacultyById(facultyId) : of<Faculty | null>(null),
+      subjects: this.attendanceApi.getSubjects()
+    });
+
+    request$.subscribe({
+      next: ({ departments, faculty, subjects }) => {
+        this.departments = departments;
         this.faculty = faculty;
-        this.students = students;
-        this.subjects = subjects;
-        this.attendance = attendance;
-        this.schedules = schedules;
-        this.refreshView();
+        this.subjects = subjects.filter(subject => subject.active !== false);
+        this.isLoadingDepartments = false;
+
+        if (faculty?.department) {
+          this.attendanceForm.patchValue({ department: faculty.department });
+          this.onDepartmentChange(faculty.department);
+        }
       },
       error: () => {
-        this.statusMessage = 'Unable to load attendance workspace data.';
+        this.isLoadingDepartments = false;
+        this.errorMessage = 'Unable to load attendance setup data.';
       }
     });
   }
 
-  refreshView(): void {
-    const department = this.faculty?.department;
-    const relatedSubjects = this.subjects.filter(subject => subject.facultyName === this.faculty?.facultyName || !subject.facultyName);
+  onDepartmentChange(department: string): void {
+    this.clearMessages();
+    this.students = [];
+    this.attendanceMap = {};
+    this.availableSubjects = this.subjects.filter(subject => {
+      const departmentMatches = subject.departmentName?.toLowerCase() === department.toLowerCase();
+      const facultyMatches = this.faculty?.facultyId ? subject.facultyId === this.faculty.facultyId : true;
+      return departmentMatches && facultyMatches;
+    });
 
-    this.teachingSlots = this.schedules
-      .filter(schedule => schedule.departmentName === department)
-      .map(schedule => {
-        const subject = relatedSubjects.find(item => item.subjectId === schedule.subjectId);
-        return {
-          facultyScheduleId: schedule.facultyScheduleId,
-          subjectId: schedule.subjectId ?? 0,
-          subjectName: subject?.name ?? `Subject #${schedule.subjectId}`,
-          departmentName: subject?.departmentName ?? 'Unassigned',
-          scheduleTime: schedule.scheduleTime,
-          classroom: schedule.classroom
-        };
-      });
-
-    if (!this.selectedSlotId && this.teachingSlots.length > 0) {
-      this.selectedSlotId = this.teachingSlots[0].facultyScheduleId;
+    const currentSubjectId = this.attendanceForm.controls.subjectId.value;
+    const subjectStillValid = this.availableSubjects.some(subject => subject.subjectId === currentSubjectId);
+    if (!subjectStillValid) {
+      this.attendanceForm.patchValue({ subjectId: 0 });
     }
 
-    this.filteredStudents = this.students.filter(student => {
-      const departmentMatches = department ? student.departmentName === department : true;
-      const semesterMatches = this.selectedSemester ? student.semester === this.selectedSemester : true;
-      return departmentMatches && semesterMatches;
-    });
-  }
-
-  markAttendance(student: Student, present: boolean): void {
-    const selectedSlot = this.selectedTeachingSlot;
-    if (!this.faculty?.facultyId || !selectedSlot) {
-      this.statusMessage = 'Select a teaching slot before marking attendance.';
+    if (!department) {
+      this.isLoadingStudents = false;
       return;
     }
 
-    const existingRecord = this.attendance.find(entry =>
-      entry.studentId === student.studentId &&
-      entry.facultyId === this.faculty?.facultyId &&
-      entry.subjectId === selectedSlot.subjectId &&
-      entry.date === this.selectedDate
-    );
-
-    const payload: AttendancePayload = {
-      date: this.selectedDate,
-      present,
-      student: { studentId: student.studentId },
-      subject: { subjectId: selectedSlot.subjectId },
-      faculty: { facultyId: this.faculty.facultyId }
-    };
-
-    const request = existingRecord
-      ? this.api.updateAttendance(existingRecord.attendanceId, payload)
-      : this.api.createAttendance(payload);
-
-    request.subscribe({
-      next: savedRecord => {
-        this.attendance = existingRecord
-          ? this.attendance.map(item => item.attendanceId === savedRecord.attendanceId ? savedRecord : item)
-          : [...this.attendance, savedRecord];
-        this.statusMessage = `${student.name} marked as ${present ? 'present' : 'absent'}.`;
+    this.isLoadingStudents = true;
+    this.attendanceApi.getStudentsByDepartment(department).subscribe({
+      next: students => {
+        this.students = students;
+        this.isLoadingStudents = false;
       },
       error: () => {
-        this.statusMessage = `Could not mark attendance for ${student.name}.`;
+        this.isLoadingStudents = false;
+        this.errorMessage = 'Unable to load students for the selected department.';
       }
     });
   }
 
-  getAttendanceLabel(studentId: number): string {
-    const selectedSlot = this.selectedTeachingSlot;
-    if (!selectedSlot || !this.faculty?.facultyId) {
-      return 'Pending';
-    }
-
-    const record = this.attendance.find(entry =>
-      entry.studentId === studentId &&
-      entry.facultyId === this.faculty?.facultyId &&
-      entry.subjectId === selectedSlot.subjectId &&
-      entry.date === this.selectedDate
-    );
-
-    if (!record) {
-      return 'Pending';
-    }
-
-    return record.present ? 'Present' : 'Absent';
+  updateAttendance(studentId: number, status: AttendanceStatus): void {
+    this.attendanceMap = {
+      ...this.attendanceMap,
+      [studentId]: status
+    };
   }
 
-  get selectedTeachingSlot(): TeachingSlot | undefined {
-    return this.teachingSlots.find(slot => slot.facultyScheduleId === this.selectedSlotId);
+  submitAttendance(): void {
+    this.clearMessages();
+
+    if (this.attendanceForm.invalid) {
+      this.errorMessage = 'Select a department, subject, and date before submitting attendance.';
+      this.attendanceForm.markAllAsTouched();
+      return;
+    }
+
+    if (this.students.length === 0) {
+      this.errorMessage = 'There are no students available for the selected department.';
+      return;
+    }
+
+    const unmarkedStudents = this.students.filter(student => !this.attendanceMap[student.studentId]);
+    if (unmarkedStudents.length > 0) {
+      this.errorMessage = 'Mark every listed student as present or absent before submitting.';
+      return;
+    }
+
+    const selectedDate = this.attendanceForm.controls.date.value;
+    const selectedSubjectId = this.attendanceForm.controls.subjectId.value;
+    const payload: AttendanceMarkRequest[] = this.students.map(student => ({
+      studentId: student.studentId,
+      date: selectedDate,
+      subjectId: selectedSubjectId,
+      status: this.attendanceMap[student.studentId]
+    }));
+
+    this.isSubmitting = true;
+    this.attendanceApi.markAttendance(payload).subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.successMessage = 'Attendance submitted successfully.';
+        const department = this.attendanceForm.controls.department.value;
+        this.onDepartmentChange(department);
+      },
+      error: (error) => {
+        this.isSubmitting = false;
+        this.errorMessage = error?.error?.message ?? 'Unable to submit attendance right now.';
+      }
+    });
+  }
+
+  trackByStudentId(_: number, student: DepartmentAttendanceStudent): number {
+    return student.studentId;
+  }
+
+  get selectedDepartment(): string {
+    return this.attendanceForm.controls.department.value;
+  }
+
+  get selectedSubjectId(): number {
+    return this.attendanceForm.controls.subjectId.value;
+  }
+
+  private clearMessages(): void {
+    this.errorMessage = '';
+    this.successMessage = '';
   }
 }

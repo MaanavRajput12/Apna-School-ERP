@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.collegedb.Response.DepartmentStudentAttendanceResponse;
 import com.example.collegedb.Response.StudentResponse;
 import com.example.collegedb.Service.StudentService;
 import com.example.collegedb.dto.student.StudentCreateRequest;
@@ -23,7 +25,7 @@ import com.example.collegedb.dto.student.StudentUpdateRequest;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/students")
+@RequestMapping({"/students", "/api/students"})
 public class StudentController {
     private static final Logger logger = LoggerFactory.getLogger(StudentController.class);
 
@@ -34,7 +36,13 @@ public class StudentController {
     }
 
     @GetMapping
-    public List<StudentResponse> getAll() {
+    public Object getAll(@RequestParam(required = false) String department) {
+        if (department != null) {
+            logger.info("Fetching student records for department: {}", department);
+            List<DepartmentStudentAttendanceResponse> students = studentService.getStudentsByDepartment(department);
+            return students;
+        }
+
         logger.info("Fetching all student records...");
         return studentService.getAllStudents();
     }

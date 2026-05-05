@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 
 import { FacultyRoutingModule } from './faculty-routing.module';
 import { HeaderComponent } from './components/layout/header/header.component';
@@ -24,6 +25,7 @@ import { ExamScheduleComponent } from './components/exam-schedule/exam-schedule.
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     FacultyRoutingModule
   ]
 })

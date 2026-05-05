@@ -1,74 +1,126 @@
 <section class="page-shell">
   <div class="hero-card">
     <span class="eyebrow">Attendance</span>
-    <h1 class="page-title">Mark lecture attendance for your own department.</h1>
+    <h1 class="page-title">Mark attendance by department.</h1>
     <p class="page-subtitle">
-      Select your faculty profile, choose the correct teaching slot, then mark each student present or absent for that class instance.
+      Choose a department, load the student list, then mark each student present or absent for the selected date.
     </p>
   </div>
 
   <div class="section-stack">
-    <section class="surface-card">
-      <h2 class="section-heading">Session Setup</h2>
+    <section class="surface-card" [formGroup]="attendanceForm">
+      <h2 class="section-heading">Attendance Setup</h2>
       <div class="form-grid">
-        <input [(ngModel)]="selectedSemester" (ngModelChange)="refreshView()" placeholder="Semester / year">
-        <input [(ngModel)]="selectedDate" type="date">
-        <select [(ngModel)]="selectedSlotId">
-          <option [ngValue]="null">Select subject and time slot</option>
-          <option *ngFor="let slot of teachingSlots" [ngValue]="slot.facultyScheduleId">
-            {{ slot.subjectName }} | {{ slot.departmentName }} | {{ slot.scheduleTime }}
-          </option>
-        </select>
+        <label class="field">
+          <span>Department</span>
+          <select formControlName="department" (change)="onDepartmentChange(selectedDepartment)">
+            <option value="">Select department</option>
+            <option *ngFor="let department of departments" [value]="department.departmentName">
+              {{ department.departmentName }}
+            </option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Subject</span>
+          <select formControlName="subjectId">
+            <option [ngValue]="0">Select subject</option>
+            <option *ngFor="let subject of availableSubjects" [ngValue]="subject.subjectId">
+              {{ subject.name }}
+            </option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Date</span>
+          <input formControlName="date" type="date">
+        </label>
       </div>
 
-      <div class="metric-strip" *ngIf="faculty">
+      <div class="metric-strip">
         <div class="metric-chip">
-          <span>Department</span>
-          <strong>{{ faculty.department }}</strong>
+          <span>Faculty</span>
+          <strong>{{ faculty?.facultyName || 'Not linked' }}</strong>
         </div>
-        <div class="metric-chip" *ngIf="selectedTeachingSlot">
-          <span>Subject</span>
-          <strong>{{ selectedTeachingSlot.subjectName }}</strong>
+        <div class="metric-chip">
+          <span>Default Dept</span>
+          <strong>{{ faculty?.department || 'Choose manually' }}</strong>
         </div>
-        <div class="metric-chip" *ngIf="selectedTeachingSlot">
-          <span>Classroom</span>
-          <strong>{{ selectedTeachingSlot.classroom }}</strong>
+        <div class="metric-chip">
+          <span>Loaded Students</span>
+          <strong>{{ students.length }}</strong>
+        </div>
+        <div class="metric-chip">
+          <span>Available Subjects</span>
+          <strong>{{ availableSubjects.length }}</strong>
         </div>
       </div>
     </section>
 
     <section class="surface-card">
       <h2 class="section-heading">Student Attendance Sheet</h2>
-      <p class="section-copy" *ngIf="statusMessage">{{ statusMessage }}</p>
+      <p class="section-copy" *ngIf="isLoadingDepartments || isLoadingStudents">Loading attendance data...</p>
+      <p class="section-copy section-copy--success" *ngIf="successMessage">{{ successMessage }}</p>
+      <p class="section-copy section-copy--error" *ngIf="errorMessage">{{ errorMessage }}</p>
+      <p class="section-copy" *ngIf="!selectedDepartment && !isLoadingDepartments">
+        Select a department to load students.
+      </p>
+      <p class="section-copy" *ngIf="selectedDepartment && !isLoadingStudents && students.length === 0">
+        No students found for the selected department.
+      </p>
 
-      <div class="table-wrap">
+      <div class="table-wrap" *ngIf="students.length > 0">
         <table class="erp-table">
           <thead>
             <tr>
-              <th>Student</th>
+              <th>Name</th>
               <th>Roll No</th>
               <th>Department</th>
               <th>Course</th>
               <th>Semester</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th>Attendance %</th>
+              <th>Attendance</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let student of filteredStudents">
+            <tr *ngFor="let student of students; trackBy: trackByStudentId">
               <td>{{ student.name }}</td>
               <td>{{ student.rollNo }}</td>
-              <td>{{ student.departmentName }}</td>
-              <td>{{ student.courseName }}</td>
+              <td>{{ student.department }}</td>
+              <td>{{ student.course }}</td>
               <td>{{ student.semester }}</td>
-              <td>{{ getAttendanceLabel(student.studentId) }}</td>
               <td>
-                <button class="btn-primary" (click)="markAttendance(student, true)">Present</button>
-                <button class="btn-secondary" (click)="markAttendance(student, false)">Absent</button>
+                {{ student.attendancePercentage | number:'1.0-2' }}%
+              </td>
+              <td>
+                <div class="attendance-toggle">
+                  <label>
+                    <input
+                      type="radio"
+                      [name]="'attendance-' + student.studentId"
+                      [checked]="attendanceMap[student.studentId] === 'PRESENT'"
+                      (change)="updateAttendance(student.studentId, 'PRESENT')">
+                    <span>Present</span>
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      [name]="'attendance-' + student.studentId"
+                      [checked]="attendanceMap[student.studentId] === 'ABSENT'"
+                      (change)="updateAttendance(student.studentId, 'ABSENT')">
+                    <span>Absent</span>
+                  </label>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <div class="actions">
+        <button class="btn-primary" type="button" (click)="submitAttendance()" [disabled]="isSubmitting || students.length === 0">
+          {{ isSubmitting ? 'Submitting...' : 'Submit Attendance' }}
+        </button>
       </div>
     </section>
   </div>

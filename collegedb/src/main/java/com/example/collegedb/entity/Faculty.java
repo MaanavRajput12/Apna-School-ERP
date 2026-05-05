@@ -41,9 +41,6 @@ public class Faculty {
     private List<Subject> subjects;
 
     @OneToMany(mappedBy = "faculty", cascade = CascadeType.ALL)
-    private List<Attendance> attendances;
-
-    @OneToMany(mappedBy = "faculty", cascade = CascadeType.ALL)
     private List<Timetable> timetables;
 
     @OneToMany(mappedBy = "faculty", cascade = CascadeType.ALL)
@@ -82,9 +79,6 @@ public class Faculty {
 
     public List<Subject> getSubjects() { return subjects; }
     public void setSubjects(List<Subject> subjects) { this.subjects = subjects; }
-
-    public List<Attendance> getAttendances() { return attendances; }
-    public void setAttendances(List<Attendance> attendances) { this.attendances = attendances; }
 
     public List<Timetable> getTimetables() { return timetables; }
     public void setTimetables(List<Timetable> timetables) { this.timetables = timetables; }

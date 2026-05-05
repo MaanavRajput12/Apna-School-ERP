@@ -1,0 +1,67 @@
+.attendance-focus {
+  align-items: center;
+  background: linear-gradient(135deg, #f8fbff 0%, #eef7ff 100%);
+  border: 1px solid #d7e6f5;
+  border-radius: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.attendance-focus__label {
+  color: #35526b;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.attendance-focus__value {
+  color: #12344d;
+  font-size: clamp(2.75rem, 7vw, 4.75rem);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.attendance-focus__copy {
+  color: #5f7387;
+  margin: 0;
+  max-width: 28rem;
+}
+
+.subject-attendance-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.subject-attendance-card {
+  background: #fbfdff;
+  border: 1px solid #dbe7f3;
+  border-radius: 1rem;
+  padding: 1.25rem;
+}
+
+.subject-attendance-card__name,
+.subject-attendance-card__percentage,
+.subject-attendance-card__meta {
+  margin: 0;
+}
+
+.subject-attendance-card__name {
+  color: #35526b;
+  font-weight: 700;
+}
+
+.subject-attendance-card__percentage {
+  color: #12344d;
+  font-size: 2rem;
+  font-weight: 800;
+  margin-top: 0.5rem;
+}
+
+.subject-attendance-card__meta {
+  color: #5f7387;
+  margin-top: 0.5rem;
+}

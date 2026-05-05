@@ -1,28 +1,27 @@
 package com.example.collegedb.Response;
 import java.time.LocalDate;
 
+import com.example.collegedb.entity.enums.AttendanceStatus;
+
 public class AttendanceResponse {
-    private final Long attendanceId;
+    private final Long id;
     private final Long studentId;
     private final LocalDate date;
-    private final Boolean present;
+    private final AttendanceStatus status;
     private final Long subjectId;
-    private final Long facultyId;
 
-    public AttendanceResponse(Long attendanceId, Long studentId, LocalDate date, Boolean present, Long subjectId, Long facultyId) {
-        this.attendanceId = attendanceId;
+    public AttendanceResponse(Long id, Long studentId, LocalDate date, AttendanceStatus status, Long subjectId) {
+        this.id = id;
         this.studentId = studentId;
         this.date = date;
-        this.present = present;
+        this.status = status;
         this.subjectId = subjectId;
-        this.facultyId = facultyId;
     }
 
     // Getters
-    public Long getAttendanceId() { return attendanceId; }
+    public Long getId() { return id; }
     public Long getStudentId() { return studentId; }
     public LocalDate getDate() { return date; }
-    public Boolean getPresent() { return present; }
+    public AttendanceStatus getStatus() { return status; }
     public Long getSubjectId() { return subjectId; }
-    public Long getFacultyId() { return facultyId; }
 }

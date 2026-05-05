@@ -11,8 +11,10 @@ import com.example.collegedb.Exception.ResourceNotFoundException;
 import com.example.collegedb.Repository.CourseRepository;
 import com.example.collegedb.Repository.DepartmentRepository;
 import com.example.collegedb.Repository.FeesRepository;
+import com.example.collegedb.Repository.AttendanceRepository;
 import com.example.collegedb.Repository.StudentRepository;
 import com.example.collegedb.Repository.UsersRepository;
+import com.example.collegedb.Response.DepartmentStudentAttendanceResponse;
 import com.example.collegedb.Response.StudentResponse;
 import com.example.collegedb.dto.student.StudentCreateRequest;
 import com.example.collegedb.dto.student.StudentPatchRequest;
@@ -28,6 +30,7 @@ import com.example.collegedb.entity.Users;
 public class StudentService {
 
     private final StudentRepository studentRepository;
+    private final AttendanceRepository attendanceRepository;
     private final CourseRepository courseRepository;
     private final DepartmentRepository departmentRepository;
     private final FeesRepository feesRepository;
@@ -36,6 +39,7 @@ public class StudentService {
 
     public StudentService(
         StudentRepository studentRepository,
+        AttendanceRepository attendanceRepository,
         CourseRepository courseRepository,
         DepartmentRepository departmentRepository,
         FeesRepository feesRepository,
@@ -43,6 +47,7 @@ public class StudentService {
         PasswordEncoder passwordEncoder
     ) {
         this.studentRepository = studentRepository;
+        this.attendanceRepository = attendanceRepository;
         this.courseRepository = courseRepository;
         this.departmentRepository = departmentRepository;
         this.feesRepository = feesRepository;
@@ -60,6 +65,18 @@ public class StudentService {
     @Transactional(readOnly = true)
     public StudentResponse getStudentById(Long id) {
         return toResponse(getExistingStudent(id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<DepartmentStudentAttendanceResponse> getStudentsByDepartment(String department) {
+        if (department == null || department.trim().isEmpty()) {
+            return List.of();
+        }
+
+        return studentRepository.findByDepartmentDepartmentNameIgnoreCase(department.trim()).stream()
+            .filter(student -> !Boolean.FALSE.equals(student.getActive()))
+            .map(this::toDepartmentAttendanceResponse)
+            .toList();
     }
 
     public StudentResponse createStudent(StudentCreateRequest request) {
@@ -241,6 +258,27 @@ public class StudentService {
             student.getCourse() != null ? student.getCourse().getCourseName() : null,
             student.getUser() != null ? student.getUser().getUserId() : null,
             student.getActive()  
+        );
+    }
+
+    private DepartmentStudentAttendanceResponse toDepartmentAttendanceResponse(Student student) {
+        long totalClasses = attendanceRepository.countByStudentStudentId(student.getStudentId());
+        long presentClasses = attendanceRepository.countByStudentStudentIdAndStatus(
+            student.getStudentId(),
+            com.example.collegedb.entity.enums.AttendanceStatus.PRESENT
+        );
+        double percentage = totalClasses == 0
+            ? 0.0
+            : Math.round(((double) presentClasses / totalClasses) * 10000.0) / 100.0;
+
+        return new DepartmentStudentAttendanceResponse(
+            student.getStudentId(),
+            student.getName(),
+            student.getRollNo(),
+            student.getDepartment() != null ? student.getDepartment().getDepartmentName() : null,
+            student.getCourse() != null ? student.getCourse().getCourseName() : null,
+            student.getSemester(),
+            percentage
         );
     }
 }
